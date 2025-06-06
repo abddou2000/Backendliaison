@@ -5,13 +5,12 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Date;
-import java.util.List;
 
 @Entity
 @Table(name = "cotisation")
 @Getter
 @Setter
-public class cotisation {
+public class Cotisation {
     
     @Id
     @Column(name = "id_cotisation")
@@ -48,12 +47,12 @@ public class cotisation {
     private String description;
     
     // Default constructor
-    public cotisation() {
+    public Cotisation() {
     }
     
     // Constructor with essential fields
-    public cotisation(String idCotisation, String typeCotisation, TypeCotisation typeCotisationRef,
-                     Double tauxSalarial, Double tauxPatronal, Date dateDebut) {
+    public Cotisation(String idCotisation, String typeCotisation, TypeCotisation typeCotisationRef,
+                      Double tauxSalarial, Double tauxPatronal, Date dateDebut) {
         this.idCotisation = idCotisation;
         this.typeCotisation = typeCotisation;
         this.typeCotisationRef = typeCotisationRef;
@@ -63,9 +62,9 @@ public class cotisation {
     }
     
     // Constructor with all fields
-    public cotisation(String idCotisation, String typeCotisation, TypeCotisation typeCotisationRef,
-                     Double tauxSalarial, Double tauxPatronal, Double plafondSalarial, 
-                     Double plafondPatronal, Date dateDebut, Date dateFin, String description) {
+    public Cotisation(String idCotisation, String typeCotisation, TypeCotisation typeCotisationRef,
+                      Double tauxSalarial, Double tauxPatronal, Double plafondSalarial,
+                      Double plafondPatronal, Date dateDebut, Date dateFin, String description) {
         this.idCotisation = idCotisation;
         this.typeCotisation = typeCotisation;
         this.typeCotisationRef = typeCotisationRef;
@@ -79,7 +78,7 @@ public class cotisation {
     }
     
     // Create a new contribution
-    public static cotisation createCotisation(cotisation data) {
+    public static Cotisation createCotisation(Cotisation data) {
         // Note: This would typically be implemented in a repository or service class
         // This is just a placeholder signature
         return data;
@@ -106,8 +105,8 @@ public class cotisation {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof cotisation)) return false;
-        cotisation that = (cotisation) o;
+        if (!(o instanceof Cotisation)) return false;
+        Cotisation that = (Cotisation) o;
         return idCotisation != null && idCotisation.equals(that.idCotisation);
     }
     

@@ -1,3 +1,4 @@
+// src/main/java/com/example/login/Security/SecurityConfig.java
 package com.example.login.Security;
 
 import org.springframework.context.annotation.Bean;
@@ -15,7 +16,6 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -31,9 +31,12 @@ import java.util.Map;
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
+    private final JwtAuthFilter jwtAuthFilter;
 
-    public SecurityConfig(CustomUserDetailsService userDetailsService) {
+    public SecurityConfig(CustomUserDetailsService userDetailsService,
+                          JwtAuthFilter jwtAuthFilter) {
         this.userDetailsService = userDetailsService;
+        this.jwtAuthFilter = jwtAuthFilter;
     }
 
     @Bean
@@ -62,7 +65,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public HttpFirewall allowUrlEncodedSlashHttpFirewall() {
+    public StrictHttpFirewall allowUrlEncodedSlashHttpFirewall() {
         StrictHttpFirewall firewall = new StrictHttpFirewall();
         firewall.setAllowUrlEncodedSlash(true);
         firewall.setAllowUrlEncodedPercent(true);
@@ -74,35 +77,35 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity http,
-            JwtAuthFilter jwtAuthFilter
-    ) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        // Swagger UI and API docs paths - ALLOW ALL WITHOUT AUTHENTICATION
-                        .requestMatchers("/v3/api-docs").permitAll()
-                        .requestMatchers("/v3/api-docs/**").permitAll()
-                        .requestMatchers("/swagger-ui/**").permitAll()
-                        .requestMatchers("/swagger-ui.html").permitAll()
-                        .requestMatchers("/swagger-resources/**").permitAll()
-                        .requestMatchers("/webjars/**").permitAll()
-                        .requestMatchers("/configuration/**").permitAll()
-                        .requestMatchers("/error").permitAll()
-                        .requestMatchers("/").permitAll()
-                        
-                        // Authentication endpoints
-                        .requestMatchers("/api/login").permitAll()
-                        .requestMatchers("/setup/**").permitAll()
-                        
-                        // Require authentication for all other endpoints
+                        // 1) Accès public pour Swagger, login, setup
+                        .requestMatchers(
+                                "/v3/api-docs", "/v3/api-docs/**",
+                                "/swagger-ui/**", "/swagger-ui.html",
+                                "/swagger-resources/**", "/webjars/**", "/configuration/**",
+                                "/error", "/"
+                        ).permitAll()
+                        .requestMatchers("/api/login", "/setup/**").permitAll()
+                        .requestMatchers("/api/configurateurs/authenticate").permitAll()
+
+                        // 2) Routes /api/configurateurs/** réservées au rôle ADMIN
+                        .requestMatchers("/api/configurateurs", "/api/configurateurs/**")
+                        .hasRole("ADMIN")
+
+                        // 3) Routes /api/societes/** réservées au rôle CONFIGURATEUR
+                        .requestMatchers("/api/societes", "/api/societes/**")
+                        .hasRole("CONFIGURATEUR")
+
+                        // 4) Toute autre route nécessite simplement un JWT valide
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-        
+
         return http.build();
     }
 

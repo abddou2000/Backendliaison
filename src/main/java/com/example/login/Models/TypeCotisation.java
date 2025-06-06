@@ -35,7 +35,7 @@ public class TypeCotisation {
     private Date dateFin;
     
     @OneToMany(mappedBy = "typeCotisationRef")
-    private List<cotisation> cotisations;
+    private List<Cotisation> cotisations;
     
     // Default constructor
     public TypeCotisation() {

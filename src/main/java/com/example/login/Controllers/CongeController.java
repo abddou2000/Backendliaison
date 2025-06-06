@@ -1,7 +1,7 @@
 package com.example.login.Controllers;
 
-import com.example.login.Models.DemandeDocument;
-import com.example.login.Services.DemandeDocumentService;
+import com.example.login.Models.Conge;
+import com.example.login.Services.CongeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,28 +9,28 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/demandes-documents")
+@RequestMapping("/api/conges")
 @CrossOrigin(origins = "*")
-public class DemandeDocumentController {
+public class CongeController {
 
     @Autowired
-    private DemandeDocumentService service;
+    private CongeService service;
 
     // CREATE
     @PostMapping
-    public ResponseEntity<DemandeDocument> create(@RequestBody DemandeDocument demande) {
-        return ResponseEntity.ok(service.create(demande));
+    public ResponseEntity<Conge> create(@RequestBody Conge conge) {
+        return ResponseEntity.ok(service.create(conge));
     }
 
     // READ ALL
     @GetMapping
-    public ResponseEntity<List<DemandeDocument>> getAll() {
+    public ResponseEntity<List<Conge>> getAll() {
         return ResponseEntity.ok(service.getAll());
     }
 
     // READ BY ID
     @GetMapping("/{id}")
-    public ResponseEntity<DemandeDocument> getById(@PathVariable String id) {
+    public ResponseEntity<Conge> getById(@PathVariable String id) {
         return service.getById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -38,25 +38,13 @@ public class DemandeDocumentController {
 
     // READ BY EMPLOYE
     @GetMapping("/employe/{idEmploye}")
-    public ResponseEntity<List<DemandeDocument>> getByEmploye(@PathVariable String idEmploye) {
+    public ResponseEntity<List<Conge>> getByEmploye(@PathVariable String idEmploye) {
         return ResponseEntity.ok(service.getByEmploye(idEmploye));
-    }
-
-    // READ BY TYPE
-    @GetMapping("/type/{type}")
-    public ResponseEntity<List<DemandeDocument>> getByType(@PathVariable String type) {
-        return ResponseEntity.ok(service.getByType(type));
-    }
-
-    // READ BY ETAT
-    @GetMapping("/etat/{etat}")
-    public ResponseEntity<List<DemandeDocument>> getByEtat(@PathVariable String etat) {
-        return ResponseEntity.ok(service.getByEtat(etat));
     }
 
     // UPDATE
     @PutMapping("/{id}")
-    public ResponseEntity<DemandeDocument> update(@PathVariable String id, @RequestBody DemandeDocument updated) {
+    public ResponseEntity<Conge> update(@PathVariable String id, @RequestBody Conge updated) {
         if (!service.existsById(id)) {
             return ResponseEntity.notFound().build();
         }

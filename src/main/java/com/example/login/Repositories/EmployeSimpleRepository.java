@@ -11,7 +11,8 @@ import java.util.Optional;
 public interface EmployeSimpleRepository extends JpaRepository<EmployeSimple, String> {
     Optional<EmployeSimple> findByEmailPro(String emailPro);
     Optional<EmployeSimple> findByEmailPerso(String email);
-    
+    Optional<EmployeSimple> findByNomUtilisateur(String nomUtilisateur);
+
     // Add this method to handle multiple results
     List<EmployeSimple> findAllByEmailPro(String emailPro);
     

@@ -23,22 +23,28 @@ public class CustomUserDetailsService implements UserDetailsService {
         return employeSimpleRepository.findByEmailProWithRole(email)
                 .or(() -> employeSimpleRepository.findByEmailPersoWithRole(email))
                 .map(employeSimple -> {
-                    var role = employeSimple.getRole();
-                    String roleName = role != null ? role.getNomRole() : "USER";
                     String password = employeSimple.getMotDePasse();
+
+                    // Nettoyage et gestion du mot de passe encodé
                     if (password != null) {
-                        if (password.startsWith("{noop}")) {
-                            // No changes needed
-                        } else if (!password.startsWith("{") && password.startsWith("$2")) {
+                        if (password.startsWith("{noop}") || password.startsWith("{bcrypt}")) {
+                            // OK
+                        } else if (password.startsWith("$2")) {
                             password = "{bcrypt}" + password;
-                        } else if (!password.startsWith("{")) {
+                        } else {
                             password = "{noop}" + password;
                         }
                     }
+
+                    // Important : ajouter le préfixe ROLE_ attendu par Spring Security
+                    String roleName = employeSimple.getRole() != null
+                            ? employeSimple.getRole().getNomRole().toUpperCase()
+                            : "USER";
+
                     return User.builder()
                             .username(employeSimple.getEmailPro())
                             .password(password)
-                            .roles(roleName)
+                            .roles(roleName) // Spring ajoutera "ROLE_" automatiquement ici
                             .build();
                 })
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));

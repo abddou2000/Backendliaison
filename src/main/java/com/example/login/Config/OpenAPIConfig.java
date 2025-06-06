@@ -41,23 +41,83 @@ public class OpenAPIConfig {
                 .description("Documentation for the application API"))
             .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
     }
-    
-    @Bean 
-    public GroupedOpenApi publicApi() {
-        return GroupedOpenApi.builder()
-            .group("public")
-            .pathsToMatch("/api/login", "/api/hello", "/api/cotisations/**", 
-                         "/api/statuts-salariaux/**", "/api/categories-salariales/**",
-                         "/api/types-contrats/**", "/api/attestations/**", 
-                         "/api/unites/**", "/api/societes/**")
-            .build(); 
-    }
-    
-    @Bean
-    public GroupedOpenApi adminApi() {
-        return GroupedOpenApi.builder()
-            .group("admin")
-            .pathsToMatch("/api/admin/**")
-            .build();
-    }
+
+@Bean
+public GroupedOpenApi publicApi() {
+    return GroupedOpenApi.builder()
+        .group("Public")
+        .pathsToMatch("/api/login", "/api/hello")
+        .build();
+}
+
+@Bean
+public GroupedOpenApi employeApi() {
+    return GroupedOpenApi.builder()
+        .group("Employe")
+        .pathsToMatch(
+            "/api/employes/**",
+            "/api/profils-salariaux/**",
+            "/api/remunerations/**",
+            "/api/conges/**",
+            "/api/solde-conges/**",
+            "/api/fiches-paie/**"
+        )
+        .build();
+}
+
+@Bean
+public GroupedOpenApi administrationApi() {
+    return GroupedOpenApi.builder()
+        .group("Administration")
+        .pathsToMatch(
+            "/api/admin/**",
+            "/api/configurateurs/**",
+            "/api/parametres-systeme/**",
+            "/api/sauvegardes/**"
+        )
+        .build();
+}
+
+@Bean
+public GroupedOpenApi referentielApi() {
+    return GroupedOpenApi.builder()
+        .group("Referentiel")
+        .pathsToMatch(
+            "/api/categories-salariales/**",
+            "/api/statuts-salariaux/**",
+            "/api/types-contrats/**",
+            "/api/unites/**",
+            "/api/societes/**",
+            "/api/grilles-salariales/**",
+            "/api/echelons/**"
+        )
+        .build();
+}
+
+@Bean
+public GroupedOpenApi paieApi() {
+    return GroupedOpenApi.builder()
+        .group("Paie")
+        .pathsToMatch(
+            "/api/cotisations/**",
+            "/api/rubriques-paie/**",
+            "/api/primes-indemnites/**",
+            "/api/types-prime/**",
+            "/api/elements-variables/**",
+            "/api/constantes/**"
+        )
+        .build();
+}
+
+@Bean
+public GroupedOpenApi documentsApi() {
+    return GroupedOpenApi.builder()
+        .group("Documents")
+        .pathsToMatch(
+            "/api/attestations/**",
+            "/api/demandes-documents/**",
+            "/api/types-attestation/**"
+        )
+        .build();
+}
 }

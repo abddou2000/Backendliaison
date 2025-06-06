@@ -1,5 +1,6 @@
 package com.example.login.Models;
 
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

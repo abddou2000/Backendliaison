@@ -1,7 +1,7 @@
 package com.example.login.Controllers;
 
-import com.example.login.Models.Mesure;
-import com.example.login.Services.MesureService;
+import com.example.login.Models.Remuneration;
+import com.example.login.Services.RemunerationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,55 +9,45 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/mesures")
+@RequestMapping("/api/remunerations")
 @CrossOrigin(origins = "*")
-public class MesureController {
+public class RemunerationController {
 
     @Autowired
-    private MesureService service;
+    private RemunerationService service;
 
-    // CREATE
     @PostMapping
-    public ResponseEntity<Mesure> create(@RequestBody Mesure mesure) {
-        return ResponseEntity.ok(service.create(mesure));
+    public ResponseEntity<Remuneration> create(@RequestBody Remuneration remuneration) {
+        return ResponseEntity.status(201).body(service.create(remuneration));
     }
 
-    // READ ALL
     @GetMapping
-    public ResponseEntity<List<Mesure>> getAll() {
+    public ResponseEntity<List<Remuneration>> getAll() {
         return ResponseEntity.ok(service.getAll());
     }
 
-    // READ BY ID
     @GetMapping("/{id}")
-    public ResponseEntity<Mesure> getById(@PathVariable String id) {
+    public ResponseEntity<Remuneration> getById(@PathVariable String id) {
         return service.getById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // READ BY EMPLOYE
     @GetMapping("/employe/{idEmploye}")
-    public ResponseEntity<List<Mesure>> getByEmploye(@PathVariable String idEmploye) {
-        return ResponseEntity.ok(service.getByEmploye(idEmploye));
+    public ResponseEntity<Remuneration> getByEmploye(@PathVariable String idEmploye) {
+        return service.getByEmploye(idEmploye)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    // READ BY TYPE
-    @GetMapping("/type/{idTypeMesure}")
-    public ResponseEntity<List<Mesure>> getByType(@PathVariable String idTypeMesure) {
-        return ResponseEntity.ok(service.getByType(idTypeMesure));
-    }
-
-    // UPDATE
     @PutMapping("/{id}")
-    public ResponseEntity<Mesure> update(@PathVariable String id, @RequestBody Mesure updated) {
+    public ResponseEntity<Remuneration> update(@PathVariable String id, @RequestBody Remuneration updated) {
         if (!service.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(service.update(id, updated));
     }
 
-    // DELETE
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable String id) {
         if (!service.existsById(id)) {

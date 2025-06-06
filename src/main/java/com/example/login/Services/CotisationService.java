@@ -1,6 +1,6 @@
 package com.example.login.Services;
 
-import com.example.login.Models.cotisation;
+import com.example.login.Models.Cotisation;
 import com.example.login.Repositories.CotisationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,7 +26,7 @@ public class CotisationService {
      * @return The created cotisation
      */
     @Transactional
-    public cotisation createCotisation(cotisation cotisation) {
+    public Cotisation createCotisation(Cotisation cotisation) {
         if (cotisation.getIdCotisation() == null || cotisation.getIdCotisation().trim().isEmpty()) {
             cotisation.setIdCotisation(UUID.randomUUID().toString());
         }
@@ -40,8 +40,8 @@ public class CotisationService {
      * @return The updated cotisation
      */
     @Transactional
-    public cotisation updateCotisation(String id, cotisation cotisationDetails) {
-        cotisation existingCotisation = getCotisationById(id);
+    public Cotisation updateCotisation(String id, Cotisation cotisationDetails) {
+        Cotisation existingCotisation = getCotisationById(id);
         
         if (existingCotisation == null) {
             return null;
@@ -79,8 +79,8 @@ public class CotisationService {
      * @param id Cotisation ID
      * @return The cotisation if found, null otherwise
      */
-    public cotisation getCotisationById(String id) {
-        Optional<cotisation> cotisation = cotisationRepository.findById(id);
+    public Cotisation getCotisationById(String id) {
+        Optional<Cotisation> cotisation = cotisationRepository.findById(id);
         return cotisation.orElse(null);
     }
 
@@ -88,7 +88,7 @@ public class CotisationService {
      * List all cotisations
      * @return List of all cotisations
      */
-    public List<cotisation> listCotisations() {
+    public List<Cotisation> listCotisations() {
         return cotisationRepository.findAll();
     }
 }

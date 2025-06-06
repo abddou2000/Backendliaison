@@ -1,6 +1,6 @@
 package com.example.login.Controllers;
 
-import com.example.login.Models.cotisation;
+import com.example.login.Models.Cotisation;
 import com.example.login.Services.CotisationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -32,12 +32,12 @@ public class CotisationController {
     @Operation(summary = "Create a new cotisation", description = "Creates a new cotisation with the provided data")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Cotisation created successfully", 
-                    content = @Content(schema = @Schema(implementation = cotisation.class))),
+                    content = @Content(schema = @Schema(implementation = Cotisation.class))),
         @ApiResponse(responseCode = "400", description = "Invalid input")
     })
     @PostMapping
-    public ResponseEntity<cotisation> createCotisation(@RequestBody cotisation cotisation) {
-        cotisation created = cotisationService.createCotisation(cotisation);
+    public ResponseEntity<Cotisation> createCotisation(@RequestBody Cotisation cotisation) {
+        Cotisation created = cotisationService.createCotisation(cotisation);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
@@ -47,11 +47,11 @@ public class CotisationController {
         @ApiResponse(responseCode = "404", description = "Cotisation not found")
     })
     @PutMapping("/{id}")
-    public ResponseEntity<cotisation> updateCotisation(
+    public ResponseEntity<Cotisation> updateCotisation(
             @Parameter(description = "ID of the cotisation to update") @PathVariable String id,
-            @RequestBody cotisation cotisationDetails) {
+            @RequestBody Cotisation cotisationDetails) {
         
-        cotisation updated = cotisationService.updateCotisation(id, cotisationDetails);
+        Cotisation updated = cotisationService.updateCotisation(id, cotisationDetails);
         if (updated == null) {
             return ResponseEntity.notFound().build();
         }
@@ -76,13 +76,13 @@ public class CotisationController {
     @Operation(summary = "Get cotisation by ID", description = "Returns a cotisation based on the ID")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Found the cotisation",
-                    content = @Content(schema = @Schema(implementation = cotisation.class))),
+                    content = @Content(schema = @Schema(implementation = Cotisation.class))),
         @ApiResponse(responseCode = "404", description = "Cotisation not found")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<cotisation> getCotisationById(
+    public ResponseEntity<Cotisation> getCotisationById(
             @Parameter(description = "ID of the cotisation to retrieve") @PathVariable String id) {
-        cotisation cotisation = cotisationService.getCotisationById(id);
+        Cotisation cotisation = cotisationService.getCotisationById(id);
         if (cotisation == null) {
             return ResponseEntity.notFound().build();
         }
@@ -91,10 +91,10 @@ public class CotisationController {
 
     @Operation(summary = "Get all cotisations", description = "Returns a list of all cotisations")
     @ApiResponse(responseCode = "200", description = "List of all cotisations retrieved",
-                content = @Content(schema = @Schema(implementation = cotisation.class)))
+                content = @Content(schema = @Schema(implementation = Cotisation.class)))
     @GetMapping
-    public ResponseEntity<List<cotisation>> listCotisations() {
-        List<cotisation> cotisations = cotisationService.listCotisations();
+    public ResponseEntity<List<Cotisation>> listCotisations() {
+        List<Cotisation> cotisations = cotisationService.listCotisations();
         return ResponseEntity.ok(cotisations);
     }
 }
