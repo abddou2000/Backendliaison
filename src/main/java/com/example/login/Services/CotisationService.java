@@ -1,7 +1,7 @@
 package com.example.login.Services;
 
-import com.example.login.Models.Cotisation;
-import com.example.login.Repositories.CotisationRepository;
+import com.example.login.models.Cotisation;
+import com.example.login.repositories.CotisationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

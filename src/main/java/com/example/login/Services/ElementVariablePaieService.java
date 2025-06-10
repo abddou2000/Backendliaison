@@ -1,7 +1,7 @@
 package com.example.login.Services;
 
-import com.example.login.Models.ElementVariablePaie;
-import com.example.login.Repositories.ElementVariablePaieRepository;
+import com.example.login.models.ElementVariablePaie;
+import com.example.login.repositories.ElementVariablePaieRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

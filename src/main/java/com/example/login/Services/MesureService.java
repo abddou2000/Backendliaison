@@ -1,7 +1,7 @@
 package com.example.login.Services;
 
-import com.example.login.Models.Mesure;
-import com.example.login.Repositories.MesureRepository;
+import com.example.login.models.Mesure;
+import com.example.login.repositories.MesureRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

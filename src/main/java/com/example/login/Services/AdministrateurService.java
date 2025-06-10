@@ -1,7 +1,7 @@
 package com.example.login.Services;
 
-import com.example.login.Models.Administrateur;
-import com.example.login.Repositories.AdministrateurRepository;
+import com.example.login.models.Administrateur;
+import com.example.login.repositories.AdministrateurRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

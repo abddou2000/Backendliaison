@@ -1,11 +1,11 @@
 package com.example.login.Services;
 
-import com.example.login.Models.EmployeSimple;
-import com.example.login.Models.Rh;
-import com.example.login.Models.Role;
-import com.example.login.Repositories.EmployeSimpleRepository;
-import com.example.login.Repositories.RhRepository;
-import com.example.login.Repositories.RoleRepository;
+import com.example.login.models.EmployeSimple;
+import com.example.login.models.Rh;
+import com.example.login.models.Role;
+import com.example.login.repositories.EmployeSimpleRepository;
+import com.example.login.repositories.RhRepository;
+import com.example.login.repositories.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

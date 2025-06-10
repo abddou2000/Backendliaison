@@ -1,7 +1,7 @@
 package com.example.login.Services;
 
-import com.example.login.Models.Echelon;
-import com.example.login.Repositories.EchelonRepository;
+import com.example.login.models.Echelon;
+import com.example.login.repositories.EchelonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

@@ -1,7 +1,7 @@
 package com.example.login.Services;
 
-import com.example.login.Models.SoldeConges;
-import com.example.login.Repositories.SoldeCongesRepository;
+import com.example.login.models.SoldeConges;
+import com.example.login.repositories.SoldeCongesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

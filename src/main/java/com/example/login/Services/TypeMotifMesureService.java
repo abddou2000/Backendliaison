@@ -1,7 +1,7 @@
 package com.example.login.Services;
 
-import com.example.login.Models.TypeMotifMesure;
-import com.example.login.Repositories.TypeMotifMesureRepository;
+import com.example.login.models.TypeMotifMesure;
+import com.example.login.repositories.TypeMotifMesureRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

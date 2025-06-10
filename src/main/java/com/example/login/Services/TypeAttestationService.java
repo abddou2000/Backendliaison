@@ -1,12 +1,11 @@
 package com.example.login.Services;
 
-import com.example.login.Models.TypeAttestation;
-import com.example.login.Repositories.TypeAttestationRepository;
+import com.example.login.models.TypeAttestation;
+import com.example.login.repositories.TypeAttestationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class TypeAttestationService {

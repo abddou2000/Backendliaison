@@ -1,7 +1,7 @@
 package com.example.login.Services;
 
-import com.example.login.Models.PrimeIndemniteRetenue;
-import com.example.login.Repositories.PrimeIndemniteRetenueRepository;
+import com.example.login.models.PrimeIndemniteRetenue;
+import com.example.login.repositories.PrimeIndemniteRetenueRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

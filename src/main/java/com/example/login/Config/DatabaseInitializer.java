@@ -1,13 +1,13 @@
 package com.example.login.Config;
 
-import com.example.login.Models.Administrateur;
-import com.example.login.Models.EmployeSimple;
-import com.example.login.Models.Role;
-import com.example.login.Repositories.AdministrateurRepository;
-import com.example.login.Repositories.EmployeSimpleRepository;
-import com.example.login.Repositories.RoleRepository;
-import com.example.login.Repositories.ConfigurateurRepository;
-import com.example.login.Repositories.RhRepository;
+import com.example.login.models.Administrateur;
+import com.example.login.models.EmployeSimple;
+import com.example.login.models.Role;
+import com.example.login.repositories.AdministrateurRepository;
+import com.example.login.repositories.EmployeSimpleRepository;
+import com.example.login.repositories.RoleRepository;
+import com.example.login.repositories.ConfigurateurRepository;
+import com.example.login.repositories.RhRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;

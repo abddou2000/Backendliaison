@@ -1,7 +1,7 @@
 package com.example.login.Services;
 
-import com.example.login.Models.TypeMesure;
-import com.example.login.Repositories.TypeMesureRepository;
+import com.example.login.models.TypeMesure;
+import com.example.login.repositories.TypeMesureRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

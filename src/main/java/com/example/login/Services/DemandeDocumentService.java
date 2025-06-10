@@ -1,7 +1,7 @@
 package com.example.login.Services;
 
-import com.example.login.Models.DemandeDocument;
-import com.example.login.Repositories.DemandeDocumentRepository;
+import com.example.login.models.DemandeDocument;
+import com.example.login.repositories.DemandeDocumentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

@@ -1,7 +1,7 @@
 package com.example.login.Services;
 
-import com.example.login.Models.FichePaie;
-import com.example.login.Repositories.FichePaieRepository;
+import com.example.login.models.FichePaie;
+import com.example.login.repositories.FichePaieRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

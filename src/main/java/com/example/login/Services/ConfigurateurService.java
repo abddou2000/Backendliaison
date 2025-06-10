@@ -1,13 +1,13 @@
 // src/main/java/com/example/login/Services/ConfigurateurService.java
 package com.example.login.Services;
 
-import com.example.login.Controllers.dto.CreateConfigurateurDto;
-import com.example.login.Models.Configurateur;
-import com.example.login.Models.EmployeSimple;
-import com.example.login.Models.Role;
-import com.example.login.Repositories.ConfigurateurRepository;
-import com.example.login.Repositories.EmployeSimpleRepository;
-import com.example.login.Repositories.RoleRepository;
+import com.example.login.controllers.dto.CreateConfigurateurDto;
+import com.example.login.models.Configurateur;
+import com.example.login.models.EmployeSimple;
+import com.example.login.models.Role;
+import com.example.login.repositories.ConfigurateurRepository;
+import com.example.login.repositories.EmployeSimpleRepository;
+import com.example.login.repositories.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

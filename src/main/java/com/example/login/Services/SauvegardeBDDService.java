@@ -1,7 +1,7 @@
 package com.example.login.Services;
 
-import com.example.login.Models.SauvegardeBDD;
-import com.example.login.Repositories.SauvegardeBDDRepository;
+import com.example.login.models.SauvegardeBDD;
+import com.example.login.repositories.SauvegardeBDDRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

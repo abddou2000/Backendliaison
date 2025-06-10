@@ -1,7 +1,7 @@
 package com.example.login.Services;
 
-import com.example.login.Models.JourFerie;
-import com.example.login.Repositories.JourFerieRepository;
+import com.example.login.models.JourFerie;
+import com.example.login.repositories.JourFerieRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
