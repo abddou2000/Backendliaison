@@ -42,7 +42,7 @@ public class FichePaie {
     @OneToMany(mappedBy = "fichePaie", cascade = CascadeType.ALL)
     private Set<DemandeDocument> demandesDocuments = new HashSet<>();
     
-    // Default constructor
+    // Default constructor for fichier paie
     public FichePaie() {
     }
     
