@@ -8,6 +8,10 @@ import java.util.Optional;
 
 @Repository
 public interface SocieteRepository extends JpaRepository<Societe, String> {
-    Optional<Societe> findByIdSociete(String idSociete);
-    Optional<Societe> findByRaisonSociale(String raisonSociale);
+
+    // Plus besoin de cette méthode car findById existe déjà dans JpaRepository :
+    // Optional<Societe> findByIdSociete(String idSociete); ❌
+
+    // Nouveau champ : nomSociete (remplace raisonSociale)
+    Optional<Societe> findByNomSociete(String nomSociete);
 }

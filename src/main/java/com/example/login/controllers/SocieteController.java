@@ -12,75 +12,75 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/societes")
+@CrossOrigin(origins = "*")
 public class SocieteController {
 
     @Autowired
     private SocieteRepository societeRepository;
 
-    // CREATE a new Societe
+    // ➕ Ajouter une société
     @PostMapping
     public ResponseEntity<Societe> createSociete(@RequestBody Societe societe) {
         Societe saved = societeRepository.save(societe);
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
-    // READ all Societes
+    // 📄 Lister toutes les sociétés
     @GetMapping
     public ResponseEntity<List<Societe>> getAllSocietes() {
         List<Societe> list = societeRepository.findAll();
         return ResponseEntity.ok(list);
     }
 
-    // READ a Societe by idSociete
+    // 🔍 Rechercher une société par ID
     @GetMapping("/{idSociete}")
     public ResponseEntity<Societe> getSocieteById(@PathVariable String idSociete) {
-        Optional<Societe> optional = societeRepository.findByIdSociete(idSociete);
-        return optional
+        return societeRepository.findById(idSociete)
                 .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
-        ///afficher tous les societes//
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    // READ a Societe by raisonSociale
+    // 🔍 Rechercher une société par nom
     @GetMapping("/search")
-    public ResponseEntity<Societe> getSocieteByRaison(@RequestParam String raisonSociale) {
-        Optional<Societe> optional = societeRepository.findByRaisonSociale(raisonSociale);
-        return optional
+    public ResponseEntity<Societe> getSocieteByNom(@RequestParam String nomSociete) {
+        return societeRepository.findByNomSociete(nomSociete)
                 .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    // UPDATE an existing Societe
+    // ✏️ Modifier une société
     @PutMapping("/{idSociete}")
     public ResponseEntity<Societe> updateSociete(
             @PathVariable String idSociete,
             @RequestBody Societe societeDetails) {
+
         return societeRepository.findById(idSociete)
                 .map(existing -> {
-                    existing.setRaisonSociale(societeDetails.getRaisonSociale());
+                    existing.setNomSociete(societeDetails.getNomSociete());
                     existing.setAdresse(societeDetails.getAdresse());
-                    existing.setTelephone(societeDetails.getTelephone());
-                    existing.setEmail(societeDetails.getEmail());
-                    existing.setSiteWeb(societeDetails.getSiteWeb());
-                    existing.setRc(societeDetails.getRc());
-                    existing.setIce(societeDetails.getIce());
-                    existing.setIfFiscal(societeDetails.getIfFiscal());
-                    existing.setCnss(societeDetails.getCnss());
-                    existing.setDateCreation(societeDetails.getDateCreation());
-                    Societe updated = societeRepository.save(existing);
-                    return ResponseEntity.ok(updated);
+                    existing.setVille(societeDetails.getVille());
+                    existing.setIdentifiantFiscal(societeDetails.getIdentifiantFiscal());
+                    existing.setNumeroCnss(societeDetails.getNumeroCnss());
+                    existing.setNumeroIce(societeDetails.getNumeroIce());
+                    existing.setNumeroRc(societeDetails.getNumeroRc());
+                    existing.setDateDebut(societeDetails.getDateDebut());
+                    existing.setDateFin(societeDetails.getDateFin());
+                    existing.setNomBanque(societeDetails.getNomBanque());
+                    existing.setRib(societeDetails.getRib());
+                    existing.setBic(societeDetails.getBic());
+                    return ResponseEntity.ok(societeRepository.save(existing));
                 })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    // DELETE a Societe by idSociete
+    // 🗑 Supprimer une société
     @DeleteMapping("/{idSociete}")
-    public ResponseEntity<Void> deleteSociete(@PathVariable String idSociete) {
+    public ResponseEntity<Void> delete(@PathVariable String idSociete) {
         return societeRepository.findById(idSociete)
                 .map(existing -> {
                     societeRepository.deleteById(idSociete);
-                    return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
+                    return ResponseEntity.noContent().<Void>build();
                 })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.notFound().build());
     }
 }

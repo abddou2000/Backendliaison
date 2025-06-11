@@ -11,81 +11,87 @@ import java.util.Date;
 @Getter
 @Setter
 public class Societe {
-    
+
     @Id
-   @Column(name = "idSociete")
+    @Column(name = "idSociete") // <-- modifié ici pour correspondre au JoinColumn
     private String idSociete;
-    
-    @Column(name = "raison_sociale")
-    private String raisonSociale;
-    
+
+    @Column(name = "nom_societe")
+    private String nomSociete;
+
     @Column(name = "adresse")
     private String adresse;
-    
-    @Column(name = "telephone")
-    private String telephone;
-    
-    @Column(name = "email")
-    private String email;
-    
-    @Column(name = "site_web")
-    private String siteWeb;
-    
-    @Column(name = "rc")
-    private String rc;
-    
-    @Column(name = "ice")
-    private String ice;
-    
-    @Column(name = "if_fiscal")
-    private String ifFiscal;
-    
-    @Column(name = "cnss")
-    private String cnss;
-    
-    @Column(name = "date_creation")
+
+    @Column(name = "ville")
+    private String ville;
+
+    @Column(name = "identifiant_fiscal")
+    private String identifiantFiscal;
+
+    @Column(name = "numero_cnss")
+    private String numeroCnss;
+
+    @Column(name = "numero_ice")
+    private String numeroIce;
+
+    @Column(name = "numero_rc")
+    private String numeroRc;
+
+    @Column(name = "date_debut")
     @Temporal(TemporalType.DATE)
-    private Date dateCreation;
-    
-    // You can add related entities with proper OneToMany mappings here
-    
-    // Default constructor
+    private Date dateDebut;
+
+    @Column(name = "date_fin")
+    @Temporal(TemporalType.DATE)
+    private Date dateFin;
+
+    @Column(name = "nom_banque")
+    private String nomBanque;
+
+    @Column(name = "rib")
+    private String rib;
+
+    @Column(name = "bic")
+    private String bic;
+
     public Societe() {
     }
-    
-    // Constructor with required fields
-    public Societe(String idSociete, String raisonSociale, String adresse) {
+
+    public Societe(String idSociete, String nomSociete, String adresse, String ville) {
         this.idSociete = idSociete;
-        this.raisonSociale = raisonSociale;
+        this.nomSociete = nomSociete;
         this.adresse = adresse;
+        this.ville = ville;
     }
-    
-    // Constructor with all fields except collections
-    public Societe(String idSociete, String raisonSociale, String adresse,
-                  String telephone, String email, String siteWeb, String rc,
-                  String ice, String ifFiscal, String cnss, Date dateCreation) {
+
+    public Societe(String idSociete, String nomSociete, String adresse, String ville,
+                   String identifiantFiscal, String numeroCnss, String numeroIce, String numeroRc,
+                   Date dateDebut, Date dateFin, String nomBanque, String rib, String bic) {
         this.idSociete = idSociete;
-        this.raisonSociale = raisonSociale;
+        this.nomSociete = nomSociete;
         this.adresse = adresse;
-        this.telephone = telephone;
-        this.email = email;
-        this.siteWeb = siteWeb;
-        this.rc = rc;
-        this.ice = ice;
-        this.ifFiscal = ifFiscal;
-        this.cnss = cnss;
-        this.dateCreation = dateCreation;
+        this.ville = ville;
+        this.identifiantFiscal = identifiantFiscal;
+        this.numeroCnss = numeroCnss;
+        this.numeroIce = numeroIce;
+        this.numeroRc = numeroRc;
+        this.dateDebut = dateDebut;
+        this.dateFin = dateFin;
+        this.nomBanque = nomBanque;
+        this.rib = rib;
+        this.bic = bic;
     }
-    
+
     @Override
     public String toString() {
         return "Societe{" +
                 "idSociete='" + idSociete + '\'' +
-                ", raisonSociale='" + raisonSociale + '\'' +
+                ", nomSociete='" + nomSociete + '\'' +
                 ", adresse='" + adresse + '\'' +
+                ", ville='" + ville + '\'' +
                 '}';
     }
-    
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -93,7 +99,7 @@ public class Societe {
         Societe societe = (Societe) o;
         return idSociete != null && idSociete.equals(societe.idSociete);
     }
-    
+
     @Override
     public int hashCode() {
         return getClass().hashCode();
