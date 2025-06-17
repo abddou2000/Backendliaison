@@ -1,10 +1,10 @@
-// src/main/java/com/example/login/security/SecurityConfig.java
 package com.example.login.security;
 
 import com.example.login.security.CustomUserDetailsService;
 import com.example.login.security.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -84,15 +84,29 @@ public class SecurityConfig {
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
+                        // public endpoints
                         .requestMatchers(
                                 "/v3/api-docs","/swagger-ui/**","/swagger-ui.html",
                                 "/swagger-resources/**","/webjars/**","/configuration/**",
                                 "/error","/").permitAll()
                         .requestMatchers("/api/login","/setup/**").permitAll()
+
+                        // création RH ouverte
+                        .requestMatchers(HttpMethod.POST, "/api/rhs/register").permitAll()
+
+                        // lecture et MAJ RH réservées aux CONFIGURATEUR/ADMIN
+                        .requestMatchers(HttpMethod.GET, "/api/rhs/**").hasAnyRole("CONFIGURATEUR","ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/rhs/**").hasAnyRole("CONFIGURATEUR","ADMIN")
+
+                        // suppression RH réservée aux ADMIN
+                        .requestMatchers(HttpMethod.DELETE, "/api/rhs/**").hasRole("ADMIN")
+
+                        // autres règles existantes
                         .requestMatchers("/api/configurateurs/authenticate").permitAll()
                         .requestMatchers("/api/configurateurs/**").hasRole("ADMIN")
                         .requestMatchers("/api/societes/**").hasRole("CONFIGURATEUR")
                         .requestMatchers("/api/types-contrats/**").hasRole("CONFIGURATEUR")
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

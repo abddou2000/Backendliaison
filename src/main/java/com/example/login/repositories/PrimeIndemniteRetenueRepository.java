@@ -11,4 +11,6 @@ public interface PrimeIndemniteRetenueRepository extends JpaRepository<PrimeInde
     List<PrimeIndemniteRetenue> findByEmploye_IdEmploye(String idEmploye);
     List<PrimeIndemniteRetenue> findByPeriodePaie_IdPeriode(String idPeriode);
     List<PrimeIndemniteRetenue> findByTypePrime_IdTypePrime(String idTypePrime);
+    List<PrimeIndemniteRetenue> findByCodePrimeContainingIgnoreCase(String codePrime);
+    List<PrimeIndemniteRetenue> findByNomPrimeContainingIgnoreCase(String nomPrime);
 }

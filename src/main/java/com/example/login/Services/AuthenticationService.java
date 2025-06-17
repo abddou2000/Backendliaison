@@ -1,7 +1,11 @@
 package com.example.login.Services;
 
 import com.example.login.models.EmployeSimple;
+import com.example.login.models.Role;
 import com.example.login.repositories.EmployeSimpleRepository;
+import com.example.login.repositories.RoleRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,28 +15,42 @@ import java.util.UUID;
 public class AuthenticationService {
 
     private final EmployeSimpleRepository employeSimpleRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthenticationService(EmployeSimpleRepository employeSimpleRepository) {
+    @Autowired
+    public AuthenticationService(
+            EmployeSimpleRepository employeSimpleRepository,
+            RoleRepository roleRepository,
+            PasswordEncoder passwordEncoder) {
         this.employeSimpleRepository = employeSimpleRepository;
+        this.roleRepository = roleRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
     public void registerUser(EmployeSimple employeSimple) {
-        // Generate ID if not provided
+        // 1) Génération de l'ID si absent
         if (employeSimple.getIdEmploye() == null) {
             employeSimple.setIdEmploye(UUID.randomUUID().toString());
         }
-        
-        // Ajouter {noop} pour indiquer que le mot de passe est en texte clair
-        if (!employeSimple.getMotDePasse().startsWith("{noop}")) {
-            employeSimple.setMotDePasse("{noop}" + employeSimple.getMotDePasse());
-        }
-        
-        // Set creation date if not set
+
+        // 2) Date de création
         if (employeSimple.getDateCreation() == null) {
             employeSimple.setDateCreation(new java.sql.Date(System.currentTimeMillis()));
         }
-        
+
+        // 3) Encodage sécurisé du mot de passe
+        String raw = employeSimple.getMotDePasse();
+        employeSimple.setMotDePasse(passwordEncoder.encode(raw));
+
+        // 4) Affectation du rôle EMPLOYE
+        Role roleEmp = roleRepository
+                .findByNomRole("EMPLOYE")
+                .orElseThrow(() -> new RuntimeException("Rôle EMPLOYE introuvable en base"));
+        employeSimple.setRole(roleEmp);
+
+        // 5) Sauvegarde finale
         employeSimpleRepository.save(employeSimple);
     }
 }

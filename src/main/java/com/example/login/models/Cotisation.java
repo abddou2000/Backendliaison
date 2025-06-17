@@ -1,117 +1,124 @@
 package com.example.login.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-
 import java.util.Date;
 
 @Entity
-@Table(name = "cotisation")
-@Getter
-@Setter
 public class Cotisation {
 
     @Id
-    @Column(name = "id_cotisation")
     private String idCotisation;
 
-    @Column(name = "type_cotisation")
+    /** Nom de la cotisation */
+    private String nom;
+
+    /** Le libellé ou type textuel de la cotisation */
     private String typeCotisation;
 
+    /** Liaison vers le TypeCotisation parent, ignorée en JSON */
     @ManyToOne
-    @JoinColumn(name = "id_type_cotisation")
+    @JoinColumn(name = "idTypeCotisation")
+    @JsonIgnore
     private TypeCotisation typeCotisationRef;
 
-    @Column(name = "taux_salarial")
-    private Double tauxSalarial;
+    /** Taux prélevé sur le salarié (en pourcentage ou en valeur) */
+    private double tauxSalarial;
 
-    @Column(name = "taux_patronal")
-    private Double tauxPatronal;
+    /** Taux patronal (en pourcentage ou en valeur) */
+    private double tauxPatronal;
 
-    @Column(name = "plafond_salarial")
-    private Double plafondSalarial;
+    /** Plafond appliqué côté salarié */
+    private double plafondSalarial;
 
-    @Column(name = "plafond_patronal")
-    private Double plafondPatronal;
+    /** Plafond appliqué côté employeur */
+    private double plafondPatronal;
 
-    @Column(name = "date_debut")
     @Temporal(TemporalType.DATE)
     private Date dateDebut;
 
-    @Column(name = "date_fin")
     @Temporal(TemporalType.DATE)
     private Date dateFin;
 
-    @Column(name = "description")
+    /** Description libre */
     private String description;
 
-    // Default constructor
-    public Cotisation() {
+    // ========== Getters & Setters ==========
+
+    public String getIdCotisation() {
+        return idCotisation;
+    }
+    public void setIdCotisation(String idCotisation) {
+        this.idCotisation = idCotisation;
     }
 
-    // Constructor with essential fields
-    public Cotisation(String idCotisation, String typeCotisation, TypeCotisation typeCotisationRef,
-                      Double tauxSalarial, Double tauxPatronal, Date dateDebut) {
-        this.idCotisation = idCotisation;
-        this.typeCotisation = typeCotisation;
-        this.typeCotisationRef = typeCotisationRef;
-        this.tauxSalarial = tauxSalarial;
-        this.tauxPatronal = tauxPatronal;
-        this.dateDebut = dateDebut;
+    public String getNom() {
+        return nom;
+    }
+    public void setNom(String nom) {
+        this.nom = nom;
     }
 
-    // Constructor with all fields
-    public Cotisation(String idCotisation, String typeCotisation, TypeCotisation typeCotisationRef,
-                      Double tauxSalarial, Double tauxPatronal, Double plafondSalarial,
-                      Double plafondPatronal, Date dateDebut, Date dateFin, String description) {
-        this.idCotisation = idCotisation;
+    public String getTypeCotisation() {
+        return typeCotisation;
+    }
+    public void setTypeCotisation(String typeCotisation) {
         this.typeCotisation = typeCotisation;
+    }
+
+    public TypeCotisation getTypeCotisationRef() {
+        return typeCotisationRef;
+    }
+    public void setTypeCotisationRef(TypeCotisation typeCotisationRef) {
         this.typeCotisationRef = typeCotisationRef;
+    }
+
+    public double getTauxSalarial() {
+        return tauxSalarial;
+    }
+    public void setTauxSalarial(double tauxSalarial) {
         this.tauxSalarial = tauxSalarial;
+    }
+
+    public double getTauxPatronal() {
+        return tauxPatronal;
+    }
+    public void setTauxPatronal(double tauxPatronal) {
         this.tauxPatronal = tauxPatronal;
+    }
+
+    public double getPlafondSalarial() {
+        return plafondSalarial;
+    }
+    public void setPlafondSalarial(double plafondSalarial) {
         this.plafondSalarial = plafondSalarial;
+    }
+
+    public double getPlafondPatronal() {
+        return plafondPatronal;
+    }
+    public void setPlafondPatronal(double plafondPatronal) {
         this.plafondPatronal = plafondPatronal;
+    }
+
+    public Date getDateDebut() {
+        return dateDebut;
+    }
+    public void setDateDebut(Date dateDebut) {
         this.dateDebut = dateDebut;
+    }
+
+    public Date getDateFin() {
+        return dateFin;
+    }
+    public void setDateFin(Date dateFin) {
         this.dateFin = dateFin;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+    public void setDescription(String description) {
         this.description = description;
-    }
-
-    // Create a new contribution
-    public static Cotisation createCotisation(Cotisation data) {
-        // Note: This would typically be implemented in a repository or service class
-        // This is just a placeholder signature
-        return data;
-    }
-
-
-
-    @Override
-    public String toString() {
-        return "Cotisation{" +
-                "idCotisation='" + idCotisation + '\'' +
-                ", typeCotisation='" + typeCotisation + '\'' +
-                ", typeCotisationRef=" + (typeCotisationRef != null ? typeCotisationRef.toString() : "null") +
-                ", tauxSalarial=" + tauxSalarial +
-                ", tauxPatronal=" + tauxPatronal +
-                ", plafondSalarial=" + plafondSalarial +
-                ", plafondPatronal=" + plafondPatronal +
-                ", dateDebut=" + dateDebut +
-                ", dateFin=" + dateFin +
-                ", description='" + description + '\'' +
-                '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Cotisation)) return false;
-        Cotisation that = (Cotisation) o;
-        return idCotisation != null && idCotisation.equals(that.idCotisation);
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
     }
 }

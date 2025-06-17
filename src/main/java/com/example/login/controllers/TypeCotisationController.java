@@ -1,17 +1,15 @@
 package com.example.login.controllers;
 
 import com.example.login.models.TypeCotisation;
-import com.example.login.Services.TypeCotisationService;
+import com.example.login.services.TypeCotisationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/types-cotisation")
+@RequestMapping("/api/type-cotisations")
 @CrossOrigin(origins = "*")
 public class TypeCotisationController {
 
@@ -22,79 +20,65 @@ public class TypeCotisationController {
         this.service = service;
     }
 
-    /** Créer une nouvelle TypeCotisation */
+    // Créer un nouveau type de cotisation
     @PostMapping
-    public ResponseEntity<TypeCotisation> create(@RequestBody TypeCotisation t) {
-        TypeCotisation saved = service.save(t);
-        return ResponseEntity.status(201).body(saved);
+    public TypeCotisation create(@RequestBody TypeCotisation typeCotisation) {
+        return service.save(typeCotisation);
     }
 
-    /** Lister toutes les TypeCotisation */
+    // Obtenir tous les types
     @GetMapping
-    public ResponseEntity<List<TypeCotisation>> listAll() {
-        return ResponseEntity.ok(service.listAll());
+    public List<TypeCotisation> getAll() {
+        return service.listAll();
     }
 
-    /** Obtenir par ID */
+    // Obtenir par ID
     @GetMapping("/{id}")
-    public ResponseEntity<TypeCotisation> getById(@PathVariable String id) {
-        TypeCotisation t = service.getById(id);
-        return t == null
-                ? ResponseEntity.notFound().build()
-                : ResponseEntity.ok(t);
+    public TypeCotisation getById(@PathVariable String id) {
+        return service.getById(id);
     }
 
-    /** Mettre à jour (remplace tous les champs) */
+    // Mettre à jour
     @PutMapping("/{id}")
-    public ResponseEntity<TypeCotisation> update(
-            @PathVariable String id,
-            @RequestBody TypeCotisation details) {
-        TypeCotisation updated = service.update(id, details);
-        return updated == null
-                ? ResponseEntity.notFound().build()
-                : ResponseEntity.ok(updated);
+    public TypeCotisation update(@PathVariable String id, @RequestBody TypeCotisation updated) {
+        return service.update(id, updated);
     }
 
-    /** Supprimer */
+    // Supprimer
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
-        boolean ok = service.delete(id);
-        return ok
-                ? ResponseEntity.noContent().build()
-                : ResponseEntity.notFound().build();
+    public boolean delete(@PathVariable String id) {
+        return service.delete(id);
     }
 
-    /** Recherche par nom exact */
-    @GetMapping("/search/nom")
-    public ResponseEntity<List<TypeCotisation>> byName(@RequestParam String nom) {
-        return ResponseEntity.ok(service.findByName(nom));
+    // Chercher par nom
+    @GetMapping("/nom/{nom}")
+    public List<TypeCotisation> findByNom(@PathVariable String nom) {
+        return service.findByName(nom);
     }
 
-    /** Recherche par code exact */
-    @GetMapping("/search/code")
-    public ResponseEntity<List<TypeCotisation>> byCode(@RequestParam String code) {
-        return ResponseEntity.ok(service.findByCode(code));
+    // Chercher par code
+    @GetMapping("/code/{code}")
+    public List<TypeCotisation> findByCode(@PathVariable String code) {
+        return service.findByCode(code);
     }
 
-    /** Recherche par période (dateDebut ≤ start ≤ dateFin) */
-    @GetMapping("/search/period")
-    public ResponseEntity<List<TypeCotisation>> byPeriod(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date start,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date end) {
-        return ResponseEntity.ok(service.findByPeriod(start, end));
+    // Chercher entre deux dates
+    @GetMapping("/periode")
+    public List<TypeCotisation> findByPeriode(
+            @RequestParam("start") Date start,
+            @RequestParam("end") Date end) {
+        return service.findByPeriod(start, end);
     }
 
-    /** Recherche des cotisations démarrées après une date */
-    @GetMapping("/search/started-after")
-    public ResponseEntity<List<TypeCotisation>> startedAfter(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date) {
-        return ResponseEntity.ok(service.findStartedAfter(date));
+    // Commencée après une date
+    @GetMapping("/apres")
+    public List<TypeCotisation> findAfter(@RequestParam("date") Date date) {
+        return service.findStartedAfter(date);
     }
 
-    /** Recherche des cotisations terminées avant une date */
-    @GetMapping("/search/ending-before")
-    public ResponseEntity<List<TypeCotisation>> endingBefore(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date) {
-        return ResponseEntity.ok(service.findEndingBefore(date));
+    // Fin avant une date
+    @GetMapping("/avant")
+    public List<TypeCotisation> findBefore(@RequestParam("date") Date date) {
+        return service.findEndingBefore(date);
     }
 }

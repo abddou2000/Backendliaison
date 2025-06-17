@@ -1,10 +1,12 @@
 package com.example.login.models;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -13,46 +15,54 @@ import java.util.Set;
 @Getter
 @Setter
 public class TypePrimeIndemniteRetenue {
-    
+
     @Id
     @Column(name = "id_typeprime")
     private String idTypePrime;
-    
+
     @Column(name = "type")
     private String type; // "Prime", "Indemnité", "Retenue"
-    
+
     @Column(name = "unite")
     private String unite; // "Nombre", "Montant fixe", "Pourcentage"
-    
+
     @Column(name = "nombre")
     private Integer nombre;
-    
+
     @Column(name = "montant_fixe", precision = 10, scale = 2)
     private BigDecimal montantFixe;
-    
+
     @Column(name = "taux_pourcentage", precision = 5, scale = 2)
     private BigDecimal tauxPourcentage;
-    
+
     @Column(name = "soumis_cnss")
     private Boolean soumisCNSS;
-    
+
     @Column(name = "soumis_amo")
     private Boolean soumisAMO;
-    
+
     @Column(name = "soumis_cimr")
     private Boolean soumisCIMR;
-    
+
     @Column(name = "soumis_ir")
     private Boolean soumisIR;
-    
+
+    @Temporal(TemporalType.DATE)
+    @Column(name = "date_debut")
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private Date dateDebut;
+
+    @Temporal(TemporalType.DATE)
+    @Column(name = "date_fin")
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private Date dateFin;
+
     @OneToMany(mappedBy = "typePrime", cascade = CascadeType.ALL)
     private Set<PrimeIndemniteRetenue> primes = new HashSet<>();
-    
-    // Default constructor
+
     public TypePrimeIndemniteRetenue() {
     }
-    
-    // Constructor with essential fields
+
     public TypePrimeIndemniteRetenue(String idTypePrime, String type, String unite) {
         this.idTypePrime = idTypePrime;
         this.type = type;
@@ -62,12 +72,12 @@ public class TypePrimeIndemniteRetenue {
         this.soumisCIMR = false;
         this.soumisIR = false;
     }
-    
-    // Full constructor
+
     public TypePrimeIndemniteRetenue(String idTypePrime, String type, String unite,
-                                   Integer nombre, BigDecimal montantFixe, BigDecimal tauxPourcentage,
-                                   Boolean soumisCNSS, Boolean soumisAMO, 
-                                   Boolean soumisCIMR, Boolean soumisIR) {
+                                     Integer nombre, BigDecimal montantFixe, BigDecimal tauxPourcentage,
+                                     Boolean soumisCNSS, Boolean soumisAMO,
+                                     Boolean soumisCIMR, Boolean soumisIR,
+                                     Date dateDebut, Date dateFin) {
         this.idTypePrime = idTypePrime;
         this.type = type;
         this.unite = unite;
@@ -78,19 +88,20 @@ public class TypePrimeIndemniteRetenue {
         this.soumisAMO = soumisAMO;
         this.soumisCIMR = soumisCIMR;
         this.soumisIR = soumisIR;
+        this.dateDebut = dateDebut;
+        this.dateFin = dateFin;
     }
-    
-    // Helper methods for bidirectional relationship
+
     public void addPrimeIndemniteRetenue(PrimeIndemniteRetenue prime) {
         primes.add(prime);
         prime.setTypePrime(this);
     }
-    
+
     public void removePrimeIndemniteRetenue(PrimeIndemniteRetenue prime) {
         primes.remove(prime);
         prime.setTypePrime(null);
     }
-    
+
     @Override
     public String toString() {
         return "TypePrimeIndemniteRetenue{" +
@@ -101,9 +112,11 @@ public class TypePrimeIndemniteRetenue {
                 ", soumisAMO=" + soumisAMO +
                 ", soumisCIMR=" + soumisCIMR +
                 ", soumisIR=" + soumisIR +
+                ", dateDebut=" + dateDebut +
+                ", dateFin=" + dateFin +
                 '}';
     }
-    
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -111,7 +124,7 @@ public class TypePrimeIndemniteRetenue {
         TypePrimeIndemniteRetenue that = (TypePrimeIndemniteRetenue) o;
         return idTypePrime != null && idTypePrime.equals(that.idTypePrime);
     }
-    
+
     @Override
     public int hashCode() {
         return getClass().hashCode();

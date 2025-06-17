@@ -1,4 +1,6 @@
-package com.example.login.Services;
+// Fichier : TypeCotisationService.java
+
+package com.example.login.services;
 
 import com.example.login.models.TypeCotisation;
 import com.example.login.repositories.TypeCotisationRepository;
@@ -12,74 +14,61 @@ import java.util.Optional;
 @Service
 public class TypeCotisationService {
 
-    private final TypeCotisationRepository repo;
+    private final TypeCotisationRepository repository;
 
     @Autowired
-    public TypeCotisationService(TypeCotisationRepository repo) {
-        this.repo = repo;
+    public TypeCotisationService(TypeCotisationRepository repository) {
+        this.repository = repository;
     }
 
-    /** Crée ou met à jour */
     public TypeCotisation save(TypeCotisation t) {
-        return repo.save(t);
+        return repository.save(t);
     }
 
-    /** Met à jour une entité existante */
-    public TypeCotisation update(String id, TypeCotisation details) {
-        Optional<TypeCotisation> opt = repo.findById(id);
-        if (opt.isEmpty()) {
-            return null;
-        }
-        TypeCotisation existing = opt.get();
-        existing.setNomCotisation(details.getNomCotisation());
-        existing.setCodeCotisation(details.getCodeCotisation());
-        existing.setDescription(details.getDescription());
-        existing.setDateDebut(details.getDateDebut());
-        existing.setDateFin(details.getDateFin());
-        return repo.save(existing);
+    public List<TypeCotisation> listAll() {
+        return repository.findAll();
     }
 
-    /** Supprime */
+    public TypeCotisation getById(String id) {
+        return repository.findById(id).orElse(null);
+    }
+
+    public TypeCotisation update(String id, TypeCotisation updated) {
+        Optional<TypeCotisation> optional = repository.findById(id);
+        if (optional.isEmpty()) return null;
+
+        TypeCotisation existing = optional.get();
+        existing.setNomCotisation(updated.getNomCotisation());
+        existing.setCodeCotisation(updated.getCodeCotisation());
+        existing.setDescription(updated.getDescription());
+        existing.setDateDebut(updated.getDateDebut());
+        existing.setDateFin(updated.getDateFin());
+        return repository.save(existing);
+    }
+
     public boolean delete(String id) {
-        if (!repo.existsById(id)) {
-            return false;
-        }
-        repo.deleteById(id);
+        if (!repository.existsById(id)) return false;
+        repository.deleteById(id);
         return true;
     }
 
-    /** Recherche par ID */
-    public TypeCotisation getById(String id) {
-        return repo.findById(id).orElse(null);
-    }
-
-    /** Liste tous */
-    public List<TypeCotisation> listAll() {
-        return repo.findAll();
-    }
-
-    /** Recherche par nom */
     public List<TypeCotisation> findByName(String nom) {
-        return repo.findByNomCotisation(nom);
+        return repository.findByNomCotisation(nom);
     }
 
-    /** Recherche par code */
     public List<TypeCotisation> findByCode(String code) {
-        return repo.findByCodeCotisation(code);
+        return repository.findByCodeCotisation(code);
     }
 
-    /** Recherche par période (dateDebut ≤ start ≤ dateFin) */
     public List<TypeCotisation> findByPeriod(Date start, Date end) {
-        return repo.findByDateDebutLessThanEqualAndDateFinGreaterThanEqual(start, end);
+        return repository.findByDateDebutBetween(start, end);
     }
 
-    /** Démarrées après une date */
     public List<TypeCotisation> findStartedAfter(Date date) {
-        return repo.findByDateDebutAfter(date);
+        return repository.findByDateDebutAfter(date);
     }
 
-    /** Terminées avant une date */
     public List<TypeCotisation> findEndingBefore(Date date) {
-        return repo.findByDateFinBefore(date);
+        return repository.findByDateFinBefore(date);
     }
 }
