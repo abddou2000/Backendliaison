@@ -37,16 +37,17 @@ public class CotisationService {
      * Update an existing cotisation
      * @param id Cotisation ID
      * @param cotisationDetails Updated cotisation data
-     * @return The updated cotisation
+     * @return The updated cotisation, or null if not found
      */
     @Transactional
     public Cotisation updateCotisation(String id, Cotisation cotisationDetails) {
         Cotisation existingCotisation = getCotisationById(id);
-        
         if (existingCotisation == null) {
             return null;
         }
-        
+
+        // Mise à jour de tous les champs, y compris le nom
+        existingCotisation.setNom(cotisationDetails.getNom());
         existingCotisation.setTypeCotisation(cotisationDetails.getTypeCotisation());
         existingCotisation.setTypeCotisationRef(cotisationDetails.getTypeCotisationRef());
         existingCotisation.setTauxSalarial(cotisationDetails.getTauxSalarial());
@@ -56,7 +57,7 @@ public class CotisationService {
         existingCotisation.setDateDebut(cotisationDetails.getDateDebut());
         existingCotisation.setDateFin(cotisationDetails.getDateFin());
         existingCotisation.setDescription(cotisationDetails.getDescription());
-        
+
         return cotisationRepository.save(existingCotisation);
     }
 
