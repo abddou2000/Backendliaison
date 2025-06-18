@@ -1,11 +1,17 @@
 package com.example.login.controllers;
 
 import com.example.login.models.TypeCotisation;
-import com.example.login.services.TypeCotisationService;
+import com.example.login.Services.TypeCotisationService;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -15,81 +21,80 @@ import java.util.List;
 public class TypeCotisationController {
 
     private final TypeCotisationService service;
+    private final ObjectMapper mapper;
 
     @Autowired
     public TypeCotisationController(TypeCotisationService service) {
         this.service = service;
+        this.mapper = new ObjectMapper()
+                .setDateFormat(new SimpleDateFormat("yyyy-MM-dd"))
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
-    // — Créer un nouveau type de cotisation
-    @PostMapping(
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    public TypeCotisation create(@RequestBody TypeCotisation typeCotisation) {
-        return service.save(typeCotisation);
+    // ← plus de @RequestBody : on lit brutement l'InputStream
+    @PostMapping
+    public ResponseEntity<TypeCotisation> create(HttpServletRequest request) throws IOException {
+        TypeCotisation t = mapper.readValue(request.getInputStream(), TypeCotisation.class);
+        TypeCotisation saved = service.save(t);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
-    // — Obtenir tous les types
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<TypeCotisation> getAll() {
-        return service.listAll();
+    @GetMapping
+    public ResponseEntity<List<TypeCotisation>> getAll() {
+        return ResponseEntity.ok(service.listAll());
     }
 
-    // — Obtenir par ID
-    @GetMapping(
-            value = "/{id}",
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    public TypeCotisation getById(@PathVariable String id) {
-        return service.getById(id);
+    @GetMapping("/{id}")
+    public ResponseEntity<TypeCotisation> getById(@PathVariable String id) {
+        TypeCotisation t = service.getById(id);
+        return t != null
+                ? ResponseEntity.ok(t)
+                : ResponseEntity.notFound().build();
     }
 
-    // — Mettre à jour
-    @PutMapping(
-            value = "/{id}",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    public TypeCotisation update(
+    @PutMapping("/{id}")
+    public ResponseEntity<TypeCotisation> update(
             @PathVariable String id,
             @RequestBody TypeCotisation updated
     ) {
-        return service.update(id, updated);
+        TypeCotisation t = service.update(id, updated);
+        return t != null
+                ? ResponseEntity.ok(t)
+                : ResponseEntity.notFound().build();
     }
 
-    // — Supprimer
     @DeleteMapping("/{id}")
-    public boolean delete(@PathVariable String id) {
-        return service.delete(id);
+    public ResponseEntity<Void> delete(@PathVariable String id) {
+        return service.delete(id)
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 
-    // — Recherches diverses (toutes en JSON)
-    @GetMapping(value = "/nom/{nom}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<TypeCotisation> findByNom(@PathVariable String nom) {
-        return service.findByName(nom);
+    @GetMapping("/nom/{nom}")
+    public ResponseEntity<List<TypeCotisation>> findByNom(@PathVariable String nom) {
+        return ResponseEntity.ok(service.findByName(nom));
     }
 
-    @GetMapping(value = "/code/{code}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<TypeCotisation> findByCode(@PathVariable String code) {
-        return service.findByCode(code);
+    @GetMapping("/code/{code}")
+    public ResponseEntity<List<TypeCotisation>> findByCode(@PathVariable String code) {
+        return ResponseEntity.ok(service.findByCode(code));
     }
 
-    @GetMapping(value = "/periode", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<TypeCotisation> findByPeriode(
+    @GetMapping("/periode")
+    public ResponseEntity<List<TypeCotisation>> findByPeriode(
             @RequestParam("start") Date start,
             @RequestParam("end")   Date end
     ) {
-        return service.findByPeriod(start, end);
+        return ResponseEntity.ok(service.findByPeriod(start, end));
     }
 
-    @GetMapping(value = "/apres", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<TypeCotisation> findAfter(@RequestParam("date") Date date) {
-        return service.findStartedAfter(date);
+    @GetMapping("/apres")
+    public ResponseEntity<List<TypeCotisation>> findAfter(@RequestParam("date") Date date) {
+        return ResponseEntity.ok(service.findStartedAfter(date));
     }
 
-    @GetMapping(value = "/avant", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<TypeCotisation> findBefore(@RequestParam("date") Date date) {
-        return service.findEndingBefore(date);
+    @GetMapping("/avant")
+    public ResponseEntity<List<TypeCotisation>> findBefore(@RequestParam("date") Date date) {
+        return ResponseEntity.ok(service.findEndingBefore(date));
     }
 }

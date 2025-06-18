@@ -2,33 +2,27 @@ package com.example.login.models;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import com.example.login.models.TypeContrat;
-
 import java.util.Date;
 import java.util.List;
 
 @Entity
 @Table(name = "type_cotisation")
-@Getter
-@Setter
 public class TypeCotisation {
 
     @Id
-    @Column(name = "id_type_cotisation")
+    @Column(name = "id_type_cotisation", nullable = false)
     private String idTypeCotisation;
 
-    @Column(name = "nom_cotisation")
+    @Column(name = "nom_cotisation", nullable = false)
     private String nomCotisation;
 
-    @Column(name = "code_cotisation")
+    @Column(name = "code_cotisation", nullable = false)
     private String codeCotisation;
 
     @Column(name = "description")
     private String description;
 
-    @Column(name = "date_debut")
+    @Column(name = "date_debut", nullable = false)
     @Temporal(TemporalType.DATE)
     private Date dateDebut;
 
@@ -40,50 +34,54 @@ public class TypeCotisation {
     @JsonManagedReference
     private List<Cotisation> cotisations;
 
-    // Constructeurs
-    public TypeCotisation() {}
+    // ========== Getters & Setters ==========
 
-    public TypeCotisation(String idTypeCotisation, String nomCotisation,
-                          String codeCotisation, Date dateDebut) {
+    public String getIdTypeCotisation() {
+        return idTypeCotisation;
+    }
+    public void setIdTypeCotisation(String idTypeCotisation) {
         this.idTypeCotisation = idTypeCotisation;
+    }
+
+    public String getNomCotisation() {
+        return nomCotisation;
+    }
+    public void setNomCotisation(String nomCotisation) {
         this.nomCotisation = nomCotisation;
+    }
+
+    public String getCodeCotisation() {
+        return codeCotisation;
+    }
+    public void setCodeCotisation(String codeCotisation) {
         this.codeCotisation = codeCotisation;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Date getDateDebut() {
+        return dateDebut;
+    }
+    public void setDateDebut(Date dateDebut) {
         this.dateDebut = dateDebut;
     }
 
-    public TypeCotisation(String idTypeCotisation, String nomCotisation,
-                          String codeCotisation, String description,
-                          Date dateDebut, Date dateFin) {
-        this.idTypeCotisation = idTypeCotisation;
-        this.nomCotisation = nomCotisation;
-        this.codeCotisation = codeCotisation;
-        this.description = description;
-        this.dateDebut = dateDebut;
+    public Date getDateFin() {
+        return dateFin;
+    }
+    public void setDateFin(Date dateFin) {
         this.dateFin = dateFin;
     }
 
-    @Override
-    public String toString() {
-        return "TypeCotisation{" +
-                "idTypeCotisation='" + idTypeCotisation + '\'' +
-                ", nomCotisation='" + nomCotisation + '\'' +
-                ", codeCotisation='" + codeCotisation + '\'' +
-                ", description='" + description + '\'' +
-                ", dateDebut=" + dateDebut +
-                ", dateFin=" + dateFin +
-                '}';
+    public List<Cotisation> getCotisations() {
+        return cotisations;
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof TypeCotisation)) return false;
-        TypeCotisation that = (TypeCotisation) o;
-        return idTypeCotisation != null && idTypeCotisation.equals(that.idTypeCotisation);
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
+    public void setCotisations(List<Cotisation> cotisations) {
+        this.cotisations = cotisations;
     }
 }

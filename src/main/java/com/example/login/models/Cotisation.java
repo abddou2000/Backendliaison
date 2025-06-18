@@ -1,46 +1,57 @@
 package com.example.login.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import java.util.Date;
 
 @Entity
+@Table(name = "cotisation")
 public class Cotisation {
 
     @Id
+    @Column(name = "id_cotisation")
     private String idCotisation;
 
     /** Nom de la cotisation */
+    @Column(name = "nom")
     private String nom;
 
     /** Le libellé ou type textuel de la cotisation */
+    @Column(name = "type_cotisation")
     private String typeCotisation;
 
-    /** Liaison vers le TypeCotisation parent, ignorée en JSON */
+    /** Liaison vers le TypeCotisation parent */
     @ManyToOne
     @JoinColumn(name = "idTypeCotisation")
-    @JsonIgnore
+    @JsonBackReference
     private TypeCotisation typeCotisationRef;
 
     /** Taux prélevé sur le salarié (en pourcentage ou en valeur) */
+    @Column(name = "taux_salarial")
     private double tauxSalarial;
 
     /** Taux patronal (en pourcentage ou en valeur) */
+    @Column(name = "taux_patronal")
     private double tauxPatronal;
 
     /** Plafond appliqué côté salarié */
+    @Column(name = "plafond_salarial")
     private double plafondSalarial;
 
     /** Plafond appliqué côté employeur */
+    @Column(name = "plafond_patronal")
     private double plafondPatronal;
 
+    @Column(name = "date_debut")
     @Temporal(TemporalType.DATE)
     private Date dateDebut;
 
+    @Column(name = "date_fin")
     @Temporal(TemporalType.DATE)
     private Date dateFin;
 
     /** Description libre */
+    @Column(name = "description")
     private String description;
 
     // ========== Getters & Setters ==========

@@ -9,14 +9,9 @@ import java.util.List;
 
 @Repository
 public interface TypeCotisationRepository extends JpaRepository<TypeCotisation, String> {
-
-    List<TypeCotisation> findByNomCotisation(String nomCotisation);
-
-    List<TypeCotisation> findByCodeCotisation(String codeCotisation);
-
+    List<TypeCotisation> findByNomCotisation(String nom);
+    List<TypeCotisation> findByCodeCotisation(String code);
     List<TypeCotisation> findByDateDebutBetween(Date start, Date end);
-
     List<TypeCotisation> findByDateDebutAfter(Date date);
-
     List<TypeCotisation> findByDateFinBefore(Date date);
 }
