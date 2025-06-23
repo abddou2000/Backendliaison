@@ -1,3 +1,4 @@
+// src/main/java/com/example/login/Controllers/BaremeIRController.java
 package com.example.login.Controllers;
 
 import com.example.login.Models.BaremeIR;
@@ -22,7 +23,7 @@ public class BaremeIRController {
     @PostMapping
     public ResponseEntity<BaremeIR> createBaremeIR(@RequestBody BaremeIR baremeIR) {
         BaremeIR saved = baremeIRRepository.save(baremeIR);
-        return ResponseEntity.ok(saved);
+        return ResponseEntity.status(201).body(saved);
     }
 
     // READ ALL
@@ -41,7 +42,8 @@ public class BaremeIRController {
 
     // UPDATE
     @PutMapping("/{id}")
-    public ResponseEntity<BaremeIR> updateBaremeIR(@PathVariable String id, @RequestBody BaremeIR updatedData) {
+    public ResponseEntity<BaremeIR> updateBaremeIR(@PathVariable String id,
+                                                   @RequestBody BaremeIR updatedData) {
         Optional<BaremeIR> existing = baremeIRRepository.findById(id);
         if (existing.isPresent()) {
             updatedData.setIdTranche(id);
