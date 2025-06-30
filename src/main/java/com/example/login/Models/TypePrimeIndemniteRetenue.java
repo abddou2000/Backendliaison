@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -39,6 +40,13 @@ public class TypePrimeIndemniteRetenue {
     @Column(name = "taux_pourcentage", precision = 5, scale = 2)
     private BigDecimal tauxPourcentage;
 
+    // Nouveaux champs de période
+    @Column(name = "date_debut")
+    private LocalDate dateDebut;
+
+    @Column(name = "date_fin")
+    private LocalDate dateFin;
+
     @Column(name = "soumis_cnss")
     private Boolean soumisCNSS;
 
@@ -58,7 +66,7 @@ public class TypePrimeIndemniteRetenue {
     public TypePrimeIndemniteRetenue() {
     }
 
-    // Constructor with essential fields
+    // Constructor avec champs essentiels
     public TypePrimeIndemniteRetenue(String idTypePrime, String codeTypePrime, String type, String unite) {
         this.idTypePrime = idTypePrime;
         this.codeTypePrime = codeTypePrime;
@@ -70,11 +78,20 @@ public class TypePrimeIndemniteRetenue {
         this.soumisIR = false;
     }
 
-    // Full constructor
-    public TypePrimeIndemniteRetenue(String idTypePrime, String codeTypePrime, String type, String unite,
-                                     Integer nombre, BigDecimal montantFixe, BigDecimal tauxPourcentage,
-                                     Boolean soumisCNSS, Boolean soumisAMO,
-                                     Boolean soumisCIMR, Boolean soumisIR) {
+    // Constructeur complet incluant dateDebut et dateFin
+    public TypePrimeIndemniteRetenue(String idTypePrime,
+                                     String codeTypePrime,
+                                     String type,
+                                     String unite,
+                                     Integer nombre,
+                                     BigDecimal montantFixe,
+                                     BigDecimal tauxPourcentage,
+                                     LocalDate dateDebut,
+                                     LocalDate dateFin,
+                                     Boolean soumisCNSS,
+                                     Boolean soumisAMO,
+                                     Boolean soumisCIMR,
+                                     Boolean soumisIR) {
         this.idTypePrime = idTypePrime;
         this.codeTypePrime = codeTypePrime;
         this.type = type;
@@ -82,13 +99,15 @@ public class TypePrimeIndemniteRetenue {
         this.nombre = nombre;
         this.montantFixe = montantFixe;
         this.tauxPourcentage = tauxPourcentage;
+        this.dateDebut = dateDebut;
+        this.dateFin = dateFin;
         this.soumisCNSS = soumisCNSS;
         this.soumisAMO = soumisAMO;
         this.soumisCIMR = soumisCIMR;
         this.soumisIR = soumisIR;
     }
 
-    // Helper methods for bidirectional relationship
+    // Méthodes d'association bidirectionnelle
     public void addPrimeIndemniteRetenue(PrimeIndemniteRetenue prime) {
         primes.add(prime);
         prime.setTypePrime(this);
@@ -106,6 +125,8 @@ public class TypePrimeIndemniteRetenue {
                 ", codeTypePrime='" + codeTypePrime + '\'' +
                 ", type='" + type + '\'' +
                 ", unite='" + unite + '\'' +
+                ", dateDebut=" + dateDebut +
+                ", dateFin=" + dateFin +
                 ", soumisCNSS=" + soumisCNSS +
                 ", soumisAMO=" + soumisAMO +
                 ", soumisCIMR=" + soumisCIMR +
