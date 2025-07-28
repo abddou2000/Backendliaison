@@ -1,11 +1,14 @@
+// src/main/java/com/example/login/Controllers/ConstantesController.java
 package com.example.login.Controllers;
 
 import com.example.login.Models.Constantes;
 import com.example.login.Services.ConstantesService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -13,22 +16,23 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class ConstantesController {
 
-    @Autowired
-    private ConstantesService service;
+    private final ConstantesService service;
 
-    // CREATE
-    @PostMapping
-    public ResponseEntity<Constantes> create(@RequestBody Constantes constante) {
-        return ResponseEntity.ok(service.create(constante));
+    @Autowired
+    public ConstantesController(ConstantesService service) {
+        this.service = service;
     }
 
-    // READ ALL
+    @PostMapping
+    public ResponseEntity<Constantes> create(@RequestBody Constantes c) {
+        return ResponseEntity.status(201).body(service.create(c));
+    }
+
     @GetMapping
     public ResponseEntity<List<Constantes>> getAll() {
         return ResponseEntity.ok(service.getAll());
     }
 
-    // READ BY ID
     @GetMapping("/{id}")
     public ResponseEntity<Constantes> getById(@PathVariable String id) {
         return service.getById(id)
@@ -36,19 +40,16 @@ public class ConstantesController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // READ BY CODE
-    @GetMapping("/code/{code}")
-    public ResponseEntity<List<Constantes>> getByCode(@PathVariable String code) {
+    @GetMapping("/search/code")
+    public ResponseEntity<List<Constantes>> byCode(@RequestParam String code) {
         return ResponseEntity.ok(service.getByCode(code));
     }
 
-    // READ BY CONFIGURATEUR
-    @GetMapping("/configurateur/{id}")
-    public ResponseEntity<List<Constantes>> getByConfigurateur(@PathVariable String id) {
-        return ResponseEntity.ok(service.getByConfigurateur(id));
+    @GetMapping("/search/nom")
+    public ResponseEntity<List<Constantes>> byNom(@RequestParam String nom) {
+        return ResponseEntity.ok(service.getByNom(nom));
     }
 
-    // UPDATE
     @PutMapping("/{id}")
     public ResponseEntity<Constantes> update(@PathVariable String id, @RequestBody Constantes updated) {
         if (!service.existsById(id)) {
@@ -57,7 +58,6 @@ public class ConstantesController {
         return ResponseEntity.ok(service.update(id, updated));
     }
 
-    // DELETE
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable String id) {
         if (!service.existsById(id)) {
@@ -65,5 +65,24 @@ public class ConstantesController {
         }
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/search/period")
+    public ResponseEntity<List<Constantes>> byPeriod(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date end) {
+        return ResponseEntity.ok(service.findByPeriod(start, end));
+    }
+
+    @GetMapping("/search/started-after")
+    public ResponseEntity<List<Constantes>> startedAfter(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date) {
+        return ResponseEntity.ok(service.findStartedAfter(date));
+    }
+
+    @GetMapping("/search/ending-before")
+    public ResponseEntity<List<Constantes>> endingBefore(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date) {
+        return ResponseEntity.ok(service.findEndingBefore(date));
     }
 }

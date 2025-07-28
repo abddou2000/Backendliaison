@@ -11,15 +11,18 @@ public interface TypeCotisationRepository extends JpaRepository<TypeCotisation, 
     /** 1. Recherche par nom exact */
     List<TypeCotisation> findByNomCotisation(String nom);
 
-    /** 2. Recherche par code exact */
+    /** 2. Recherche par code exact (ancien) */
     List<TypeCotisation> findByCodeCotisation(String code);
 
-    /** 3. Filtrer par date de début ≤ date ≤ date de fin (dateFin peut être null) */
+    /** 3. Recherche par code de type de cotisation exact (nouveau) */
+    List<TypeCotisation> findByCodeTypeCotisation(String codeTypeCotisation);
+
+    /** 4. Filtrer par date de début ≤ date ≤ date de fin (dateFin peut être null) */
     List<TypeCotisation> findByDateDebutLessThanEqualAndDateFinGreaterThanEqual(Date start, Date end);
 
-    /** 4. Filtrer par date de début après une date donnée */
+    /** 5. Filtrer par date de début après une date donnée */
     List<TypeCotisation> findByDateDebutAfter(Date date);
 
-    /** 5. Filtrer par date de fin avant une date donnée */
+    /** 6. Filtrer par date de fin avant une date donnée */
     List<TypeCotisation> findByDateFinBefore(Date date);
 }

@@ -12,104 +12,106 @@ import java.util.List;
 @Getter
 @Setter
 public class TypeCotisation {
-    
+
     @Id
     @Column(name = "id_type_cotisation")
     private String idTypeCotisation;
-    
+
     @Column(name = "nom_cotisation")
     private String nomCotisation;
-    
+
     @Column(name = "code_cotisation")
     private String codeCotisation;
-    
+
+    // Nouveau champ pour le code de type de cotisation
+    @Column(name = "code_type_cotisation")
+    private String codeTypeCotisation;
+
     @Column(name = "description")
     private String description;
-    
+
     @Column(name = "date_debut")
     @Temporal(TemporalType.DATE)
     private Date dateDebut;
-    
+
     @Column(name = "date_fin")
     @Temporal(TemporalType.DATE)
     private Date dateFin;
-    
+
     @OneToMany(mappedBy = "typeCotisationRef")
     private List<Cotisation> cotisations;
-    
+
     // Default constructor
     public TypeCotisation() {
     }
-    
+
     // Constructor with essential fields
-    public TypeCotisation(String idTypeCotisation, String nomCotisation, 
-                         String codeCotisation, Date dateDebut) {
+    public TypeCotisation(String idTypeCotisation,
+                          String nomCotisation,
+                          String codeCotisation,
+                          Date dateDebut) {
         this.idTypeCotisation = idTypeCotisation;
         this.nomCotisation = nomCotisation;
         this.codeCotisation = codeCotisation;
         this.dateDebut = dateDebut;
     }
-    
-    // Constructor with all fields
-    public TypeCotisation(String idTypeCotisation, String nomCotisation, 
-                         String codeCotisation, String description, 
-                         Date dateDebut, Date dateFin) {
+
+    // Constructor with all fields including nouveau codeTypeCotisation
+    public TypeCotisation(String idTypeCotisation,
+                          String nomCotisation,
+                          String codeCotisation,
+                          String codeTypeCotisation,
+                          String description,
+                          Date dateDebut,
+                          Date dateFin) {
         this.idTypeCotisation = idTypeCotisation;
         this.nomCotisation = nomCotisation;
         this.codeCotisation = codeCotisation;
+        this.codeTypeCotisation = codeTypeCotisation;
         this.description = description;
         this.dateDebut = dateDebut;
         this.dateFin = dateFin;
     }
-    
-    // Create a new contribution type
+
+    // Create a new contribution type (placeholder)
     public static TypeCotisation createTypeCotisation(TypeCotisation data) {
-        // Note: This would typically be implemented in a repository or service class
-        // This is just a placeholder signature
         return data;
     }
-    
-    // Update existing contribution type
+
+    // Update existing contribution type (placeholder)
     public static TypeCotisation updateTypeCotisation(String id, TypeCotisation data) {
-        // Note: This would typically be implemented in a repository or service class
-        // This is just a placeholder signature
         data.setIdTypeCotisation(id);
         return data;
     }
-    
-    // Delete a contribution type
+
+    // Delete a contribution type (placeholder)
     public static boolean deleteTypeCotisation(String id) {
-        // Note: This would typically be implemented in a repository or service class
-        // This is just a placeholder signature
         return false;
     }
-    
-    // Get a contribution type by ID
+
+    // Get a contribution type by ID (placeholder)
     public static TypeCotisation getTypeCotisationById(String id) {
-        // Note: This would typically be implemented in a repository or service class
-        // This is just a placeholder signature
         return null;
     }
-    
-    // List all contribution types
+
+    // List all contribution types (placeholder)
     public static List<TypeCotisation> listTypeCotisations() {
-        // Note: This would typically be implemented in a repository or service class
-        // This is just a placeholder signature
         return null;
     }
-    
+
     @Override
     public String toString() {
         return "TypeCotisation{" +
                 "idTypeCotisation='" + idTypeCotisation + '\'' +
                 ", nomCotisation='" + nomCotisation + '\'' +
                 ", codeCotisation='" + codeCotisation + '\'' +
+                ", codeTypeCotisation='" + codeTypeCotisation + '\'' +
                 ", description='" + description + '\'' +
                 ", dateDebut=" + dateDebut +
                 ", dateFin=" + dateFin +
                 '}';
     }
-    
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -117,7 +119,7 @@ public class TypeCotisation {
         TypeCotisation that = (TypeCotisation) o;
         return idTypeCotisation != null && idTypeCotisation.equals(that.idTypeCotisation);
     }
-    
+
     @Override
     public int hashCode() {
         return getClass().hashCode();

@@ -76,6 +76,12 @@ public class TypeCotisationController {
         return ResponseEntity.ok(service.findByCode(code));
     }
 
+    /** Recherche par code de type de cotisation exact */
+    @GetMapping("/search/code-type")
+    public ResponseEntity<List<TypeCotisation>> byCodeType(@RequestParam("codeType") String codeType) {
+        return ResponseEntity.ok(service.findByCodeTypeCotisation(codeType));
+    }
+
     /** Recherche par période (dateDebut ≤ start ≤ dateFin) */
     @GetMapping("/search/period")
     public ResponseEntity<List<TypeCotisation>> byPeriod(

@@ -1,3 +1,5 @@
+
+// src/main/java/com/example/login/Controllers/JourFerieController.java
 package com.example.login.Controllers;
 
 import com.example.login.Models.JourFerie;
@@ -13,22 +15,23 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class JourFerieController {
 
-    @Autowired
-    private JourFerieService service;
+    private final JourFerieService service;
 
-    // CREATE
-    @PostMapping
-    public ResponseEntity<JourFerie> create(@RequestBody JourFerie jourFerie) {
-        return ResponseEntity.ok(service.create(jourFerie));
+    @Autowired
+    public JourFerieController(JourFerieService service) {
+        this.service = service;
     }
 
-    // READ ALL
+    @PostMapping
+    public ResponseEntity<JourFerie> create(@RequestBody JourFerie jf) {
+        return ResponseEntity.status(201).body(service.create(jf));
+    }
+
     @GetMapping
     public ResponseEntity<List<JourFerie>> getAll() {
         return ResponseEntity.ok(service.getAll());
     }
 
-    // READ BY ID
     @GetMapping("/{id}")
     public ResponseEntity<JourFerie> getById(@PathVariable String id) {
         return service.getById(id)
@@ -36,19 +39,11 @@ public class JourFerieController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // READ BY PARAMETREUR
-    @GetMapping("/parametreur/{idParametreur}")
-    public ResponseEntity<List<JourFerie>> getByParametreur(@PathVariable String idParametreur) {
-        return ResponseEntity.ok(service.getByParametreur(idParametreur));
-    }
-
-    // READ RECURRING HOLIDAYS
     @GetMapping("/recurrents")
-    public ResponseEntity<List<JourFerie>> getRecurrentHolidays() {
+    public ResponseEntity<List<JourFerie>> getRecurrent() {
         return ResponseEntity.ok(service.getRecurrentHolidays());
     }
 
-    // UPDATE
     @PutMapping("/{id}")
     public ResponseEntity<JourFerie> update(@PathVariable String id, @RequestBody JourFerie updated) {
         if (!service.existsById(id)) {
@@ -57,7 +52,6 @@ public class JourFerieController {
         return ResponseEntity.ok(service.update(id, updated));
     }
 
-    // DELETE
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable String id) {
         if (!service.existsById(id)) {

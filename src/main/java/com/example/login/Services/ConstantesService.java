@@ -1,3 +1,4 @@
+// src/main/java/com/example/login/Services/ConstantesService.java
 package com.example.login.Services;
 
 import com.example.login.Models.Constantes;
@@ -5,45 +6,62 @@ import com.example.login.Repositories.ConstantesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class ConstantesService {
 
-    @Autowired
-    private ConstantesRepository repository;
+    private final ConstantesRepository repo;
 
-    public Constantes create(Constantes constante) {
-        return repository.save(constante);
+    @Autowired
+    public ConstantesService(ConstantesRepository repo) {
+        this.repo = repo;
+    }
+
+    public Constantes create(Constantes c) {
+        return repo.save(c);
     }
 
     public List<Constantes> getAll() {
-        return repository.findAll();
+        return repo.findAll();
     }
 
     public Optional<Constantes> getById(String id) {
-        return repository.findById(id);
+        return repo.findById(id);
     }
 
-    public List<Constantes> getByCode(String codeConst) {
-        return repository.findByCodeConst(codeConst);
+    public List<Constantes> getByCode(String code) {
+        return repo.findByCodeConst(code);
     }
 
-    public List<Constantes> getByConfigurateur(String idConfigurateur) {
-        return repository.findByConfigurateur_IdConfigurateur(idConfigurateur);
+    public List<Constantes> getByNom(String nom) {
+        return repo.findByNomConst(nom);
     }
 
     public Constantes update(String id, Constantes updated) {
         updated.setIdConst(id);
-        return repository.save(updated);
+        return repo.save(updated);
     }
 
     public void delete(String id) {
-        repository.deleteById(id);
+        repo.deleteById(id);
     }
 
     public boolean existsById(String id) {
-        return repository.existsById(id);
+        return repo.existsById(id);
+    }
+
+    public List<Constantes> findByPeriod(Date start, Date end) {
+        return repo.findByDateDebutLessThanEqualAndDateFinGreaterThanEqual(start, end);
+    }
+
+    public List<Constantes> findStartedAfter(Date date) {
+        return repo.findByDateDebutAfter(date);
+    }
+
+    public List<Constantes> findEndingBefore(Date date) {
+        return repo.findByDateFinBefore(date);
     }
 }

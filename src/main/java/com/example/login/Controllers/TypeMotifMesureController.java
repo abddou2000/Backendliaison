@@ -1,11 +1,14 @@
+// src/main/java/com/example/login/Controllers/TypeMotifMesureController.java
 package com.example.login.Controllers;
 
 import com.example.login.Models.TypeMotifMesure;
 import com.example.login.Services.TypeMotifMesureService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -20,19 +23,16 @@ public class TypeMotifMesureController {
         this.service = service;
     }
 
-    // ➕ Créer
     @PostMapping
     public ResponseEntity<TypeMotifMesure> create(@RequestBody TypeMotifMesure t) {
         return ResponseEntity.status(201).body(service.create(t));
     }
 
-    // 📄 Lister toutes
     @GetMapping
     public ResponseEntity<List<TypeMotifMesure>> listAll() {
         return ResponseEntity.ok(service.listAll());
     }
 
-    // 🔍 Par ID
     @GetMapping("/{id}")
     public ResponseEntity<TypeMotifMesure> getById(@PathVariable String id) {
         TypeMotifMesure t = service.getById(id);
@@ -41,18 +41,14 @@ public class TypeMotifMesureController {
                 : ResponseEntity.ok(t);
     }
 
-    // ✏️ Mettre à jour
     @PutMapping("/{id}")
-    public ResponseEntity<TypeMotifMesure> update(
-            @PathVariable String id,
-            @RequestBody TypeMotifMesure details) {
+    public ResponseEntity<TypeMotifMesure> update(@PathVariable String id, @RequestBody TypeMotifMesure details) {
         TypeMotifMesure updated = service.update(id, details);
         return updated == null
                 ? ResponseEntity.notFound().build()
                 : ResponseEntity.ok(updated);
     }
 
-    // ❌ Supprimer
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable String id) {
         return service.delete(id)
@@ -60,15 +56,32 @@ public class TypeMotifMesureController {
                 : ResponseEntity.notFound().build();
     }
 
-    // 🔍 Recherche par code
     @GetMapping("/search/code")
     public ResponseEntity<List<TypeMotifMesure>> byCode(@RequestParam String code) {
         return ResponseEntity.ok(service.findByCode(code));
     }
 
-    // 🔍 Recherche par libellé
     @GetMapping("/search/libelle")
     public ResponseEntity<List<TypeMotifMesure>> byLibelle(@RequestParam String libelle) {
         return ResponseEntity.ok(service.findByLibelle(libelle));
+    }
+
+    @GetMapping("/search/period")
+    public ResponseEntity<List<TypeMotifMesure>> byPeriod(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date end) {
+        return ResponseEntity.ok(service.findByPeriod(start, end));
+    }
+
+    @GetMapping("/search/started-after")
+    public ResponseEntity<List<TypeMotifMesure>> startedAfter(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date) {
+        return ResponseEntity.ok(service.findStartedAfter(date));
+    }
+
+    @GetMapping("/search/ending-before")
+    public ResponseEntity<List<TypeMotifMesure>> endingBefore(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date) {
+        return ResponseEntity.ok(service.findEndingBefore(date));
     }
 }

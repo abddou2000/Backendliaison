@@ -2,7 +2,6 @@ package com.example.login.Controllers;
 
 import com.example.login.Models.GrilleSalariale;
 import com.example.login.Services.GrilleSalarialeService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,22 +12,26 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class GrilleSalarialeController {
 
-    @Autowired
-    private GrilleSalarialeService service;
+    private final GrilleSalarialeService service;
 
-    // CREATE
-    @PostMapping
-    public ResponseEntity<GrilleSalariale> create(@RequestBody GrilleSalariale grille) {
-        return ResponseEntity.ok(service.create(grille));
+    public GrilleSalarialeController(GrilleSalarialeService service) {
+        this.service = service;
     }
 
-    // READ ALL
+    @PostMapping
+    public ResponseEntity<?> create(@RequestBody GrilleSalariale grille) {
+        try {
+            return ResponseEntity.ok(service.create(grille));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+    }
+
     @GetMapping
     public ResponseEntity<List<GrilleSalariale>> getAll() {
         return ResponseEntity.ok(service.getAll());
     }
 
-    // READ BY ID
     @GetMapping("/{id}")
     public ResponseEntity<GrilleSalariale> getById(@PathVariable String id) {
         return service.getById(id)
@@ -36,16 +39,30 @@ public class GrilleSalarialeController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // UPDATE
+    @GetMapping("/code/{code}")
+    public ResponseEntity<GrilleSalariale> getByCode(@PathVariable String code) {
+        return service.getByCode(code)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/echelon/{idEchelon}")
+    public ResponseEntity<List<GrilleSalariale>> getByEchelon(@PathVariable String idEchelon) {
+        return ResponseEntity.ok(service.getByEchelon(idEchelon));
+    }
+
     @PutMapping("/{id}")
-    public ResponseEntity<GrilleSalariale> update(@PathVariable String id, @RequestBody GrilleSalariale updated) {
+    public ResponseEntity<?> update(@PathVariable String id, @RequestBody GrilleSalariale updated) {
         if (!service.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(service.update(id, updated));
+        try {
+            return ResponseEntity.ok(service.update(id, updated));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
     }
 
-    // DELETE
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable String id) {
         if (!service.existsById(id)) {

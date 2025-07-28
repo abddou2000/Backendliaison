@@ -1,13 +1,16 @@
+// src/main/java/com/example/login/Repositories/SocieteRepository.java
 package com.example.login.Repositories;
 
 import com.example.login.Models.Societe;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import java.util.Date;
+import java.util.List;
 
-import java.util.Optional;
-
-@Repository
 public interface SocieteRepository extends JpaRepository<Societe, String> {
-    Optional<Societe> findByIdSociete(String idSociete);
-    Optional<Societe> findByRaisonSociale(String raisonSociale);
+    List<Societe> findByCodeSociete(String codeSociete);
+    List<Societe> findByVille(String ville);
+    List<Societe> findByDateDebutLessThanEqualAndDateFinGreaterThanEqual(Date start, Date end);
+    List<Societe> findByDateDebutAfter(Date date);
+    List<Societe> findByDateFinBefore(Date date);
+    List<Societe> findByNomBanque(String nomBanque);
 }

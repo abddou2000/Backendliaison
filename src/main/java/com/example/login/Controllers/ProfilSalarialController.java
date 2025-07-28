@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/profils-salariaux")
@@ -36,6 +38,14 @@ public class ProfilSalarialController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // READ BY CODE_PROFIL
+    @GetMapping("/code/{codeProfil}")
+    public ResponseEntity<ProfilSalarial> getByCode(@PathVariable String codeProfil) {
+        Optional<ProfilSalarial> p = service.getByCode(codeProfil);
+        return p.map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     // READ BY CATEGORIE
     @GetMapping("/categorie/{idCategorie}")
     public ResponseEntity<List<ProfilSalarial>> getByCategorie(@PathVariable String idCategorie) {
@@ -48,13 +58,27 @@ public class ProfilSalarialController {
         return ResponseEntity.ok(service.getByStatut(idStatut));
     }
 
-    // UPDATE
+    // UPDATE (PUT complet)
     @PutMapping("/{id}")
     public ResponseEntity<ProfilSalarial> update(@PathVariable String id, @RequestBody ProfilSalarial updated) {
         if (!service.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(service.update(id, updated));
+    }
+
+    // PATCH : mise à jour du codeProfil uniquement
+    @PatchMapping("/{id}/code")
+    public ResponseEntity<ProfilSalarial> updateCode(@PathVariable String id,
+                                                     @RequestBody Map<String, String> body) {
+        if (!service.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        String newCode = body.get("codeProfil");
+        if (newCode == null || newCode.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(service.updateCode(id, newCode));
     }
 
     // DELETE

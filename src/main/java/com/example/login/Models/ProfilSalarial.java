@@ -1,5 +1,7 @@
 package com.example.login.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;   // <-- import ajouté
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,58 +13,62 @@ import java.util.Set;
 
 @Entity
 @Table(name = "profil_salarial")
-@Getter
-@Setter
+@Getter @Setter
 public class ProfilSalarial {
-    
+
     @Id
     @Column(name = "id_profil")
     private String idProfil;
-    
+
+    @Column(name = "code_profil", nullable = false, unique = true, length = 50)
+    private String codeProfil;
+
     @Column(name = "nom_profil")
     private String nomProfil;
-    
-    @ManyToOne
+
+    @ManyToOne(fetch = FetchType.LAZY)   // <-- LAZY
     @JoinColumn(name = "id_categorie_salariale")
+    @JsonIgnoreProperties({"profilsSalariaux", "echelons", "hibernateLazyInitializer", "handler"}) // <-- ignore boucles
     private CategorieSalariale categorieSalariale;
-    
-    @ManyToOne
+
+    @ManyToOne(fetch = FetchType.LAZY)   // <-- LAZY
     @JoinColumn(name = "id_statut_salarial")
+    @JsonIgnoreProperties({"profilsSalariaux", "categoriesSalariales", "echelons",
+            "hibernateLazyInitializer", "handler"}) // <-- ignore boucles
     private StatutSalarial statutSalarial;
-    
+
     @Column(name = "fonction")
     private String fonction;
-    
+
     @Column(name = "salaire_base", precision = 10, scale = 2)
     private BigDecimal salaireBase;
-    
+
     @OneToMany(mappedBy = "profilSalarial", cascade = CascadeType.ALL)
+    @JsonIgnore  // <-- si tu n’as pas besoin de renvoyer la liste, on l’ignore pour éviter d’autres cycles
     private Set<PrimeIndemniteRetenue> primes = new HashSet<>();
-    
+
+    @Temporal(TemporalType.DATE)
     @Column(name = "date_debut")
-    @Temporal(TemporalType.DATE)
     private Date dateDebut;
-    
-    @Column(name = "date_fin")
+
     @Temporal(TemporalType.DATE)
+    @Column(name = "date_fin")
     private Date dateFin;
-    
-    // Default constructor
-    public ProfilSalarial() {
-    }
-    
-    // Constructor with essential fields
-    public ProfilSalarial(String idProfil, String nomProfil, BigDecimal salaireBase) {
+
+    public ProfilSalarial() {}
+
+    public ProfilSalarial(String idProfil, String codeProfil, String nomProfil, BigDecimal salaireBase) {
         this.idProfil = idProfil;
+        this.codeProfil = codeProfil;
         this.nomProfil = nomProfil;
         this.salaireBase = salaireBase;
     }
-    
-    // Constructor with all fields except collections
-    public ProfilSalarial(String idProfil, String nomProfil, CategorieSalariale categorieSalariale,
-                         StatutSalarial statutSalarial, String fonction, BigDecimal salaireBase,
-                         Date dateDebut, Date dateFin) {
+
+    public ProfilSalarial(String idProfil, String codeProfil, String nomProfil,
+                          CategorieSalariale categorieSalariale, StatutSalarial statutSalarial,
+                          String fonction, BigDecimal salaireBase, Date dateDebut, Date dateFin) {
         this.idProfil = idProfil;
+        this.codeProfil = codeProfil;
         this.nomProfil = nomProfil;
         this.categorieSalariale = categorieSalariale;
         this.statutSalarial = statutSalarial;
@@ -71,14 +77,12 @@ public class ProfilSalarial {
         this.dateDebut = dateDebut;
         this.dateFin = dateFin;
     }
-    
-    // Helper methods to maintain bidirectional relationships
- 
-    
+
     @Override
     public String toString() {
         return "ProfilSalarial{" +
                 "idProfil='" + idProfil + '\'' +
+                ", codeProfil='" + codeProfil + '\'' +
                 ", nomProfil='" + nomProfil + '\'' +
                 ", fonction='" + fonction + '\'' +
                 ", salaireBase=" + salaireBase +
@@ -86,7 +90,7 @@ public class ProfilSalarial {
                 ", dateFin=" + dateFin +
                 '}';
     }
-    
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -94,7 +98,7 @@ public class ProfilSalarial {
         ProfilSalarial that = (ProfilSalarial) o;
         return idProfil != null && idProfil.equals(that.idProfil);
     }
-    
+
     @Override
     public int hashCode() {
         return getClass().hashCode();

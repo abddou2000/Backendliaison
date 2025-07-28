@@ -1,5 +1,8 @@
+// src/main/java/com/example/login/Models/EmployeSimple.java
 package com.example.login.Models;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,6 +13,10 @@ import java.util.Date;
 @Table(name = "employe_simple")
 @Getter
 @Setter
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "idEmploye"
+)
 public class EmployeSimple {
 
     @Id
@@ -70,11 +77,8 @@ public class EmployeSimple {
     @JoinColumn(name = "id_role")
     private Role role;
 
-    // Default constructor
-    public EmployeSimple() {
-    }
+    public EmployeSimple() { }
 
-    // Constructor with required fields
     public EmployeSimple(String idEmploye, String nom, String prenom, String email, String motDePasse) {
         this.idEmploye = idEmploye;
         this.nom = nom;

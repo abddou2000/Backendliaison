@@ -33,6 +33,8 @@ public class TypeCotisationService {
         TypeCotisation existing = opt.get();
         existing.setNomCotisation(details.getNomCotisation());
         existing.setCodeCotisation(details.getCodeCotisation());
+        // Mise à jour du nouveau champ
+        existing.setCodeTypeCotisation(details.getCodeTypeCotisation());
         existing.setDescription(details.getDescription());
         existing.setDateDebut(details.getDateDebut());
         existing.setDateFin(details.getDateFin());
@@ -66,6 +68,11 @@ public class TypeCotisationService {
     /** Recherche par code */
     public List<TypeCotisation> findByCode(String code) {
         return repo.findByCodeCotisation(code);
+    }
+
+    /** Recherche par code de type de cotisation */
+    public List<TypeCotisation> findByCodeTypeCotisation(String codeType) {
+        return repo.findByCodeTypeCotisation(codeType);
     }
 
     /** Recherche par période (dateDebut ≤ start ≤ dateFin) */

@@ -1,50 +1,13 @@
-// src/main/java/com/example/login/Models/JourFerie.java
+// src/main/java/com/example/login/Repositories/JourFerieRepository.java
 package com.example.login.Repositories;
 
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import com.example.login.Models.JourFerie;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import java.util.Date;
+import java.util.List;
 
-@Entity
-@Table(name = "jour_ferie")
-@Getter
-@Setter
-public class JourFerie {
-
-    @Id
-    @Column(name = "id_jour_ferie")
-    private String idJourFerie;
-
-    @Column(name = "nom_jour")
-    private String nomJour;
-
-    @Column(name = "date_debut")
-    @Temporal(TemporalType.DATE)
-    private Date dateDebut;
-
-    @Column(name = "date_fin")
-    @Temporal(TemporalType.DATE)
-    private Date dateFin;
-
-    @Column(name = "recurrence_annuelle")
-    private Boolean recurrenceAnnuelle;
-
-    public JourFerie() {}
-
-    public JourFerie(String idJourFerie, String nomJour, Date dateDebut, Boolean recurrenceAnnuelle) {
-        this.idJourFerie = idJourFerie;
-        this.nomJour = nomJour;
-        this.dateDebut = dateDebut;
-        this.recurrenceAnnuelle = recurrenceAnnuelle;
-    }
-
-    public JourFerie(String idJourFerie, String nomJour, Date dateDebut, Date dateFin, Boolean recurrenceAnnuelle) {
-        this.idJourFerie = idJourFerie;
-        this.nomJour = nomJour;
-        this.dateDebut = dateDebut;
-        this.dateFin = dateFin;
-        this.recurrenceAnnuelle = recurrenceAnnuelle;
-    }
+@Repository
+public interface JourFerieRepository extends JpaRepository<JourFerie, String> {
+    List<JourFerie> findByRecurrenceAnnuelleTrue();
 }

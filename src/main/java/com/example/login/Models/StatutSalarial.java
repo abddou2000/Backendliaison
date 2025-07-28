@@ -1,5 +1,6 @@
 package com.example.login.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;            // <-- import ajouté
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,58 +14,55 @@ import java.util.Set;
 @Getter
 @Setter
 public class StatutSalarial {
-    
+
     @Id
     @Column(name = "id_statut")
     private String idStatut;
-    
+
     @Column(name = "code_statut")
     private String codeStatut;
-    
+
     @Column(name = "nom_statut")
     private String nomStatut;
-    
+
     @Column(name = "description_statut", columnDefinition = "TEXT")
     private String descriptionStatut;
-    
+
     @Column(name = "raison_inactivite")
     private String raisonInactivite;
-    
+
     @Column(name = "date_debut")
     @Temporal(TemporalType.DATE)
     private Date dateDebut;
-    
+
     @Column(name = "date_fin")
     @Temporal(TemporalType.DATE)
     private Date dateFin;
-    
-    // One-to-Many relationship with CategorieSalariale
+
     @OneToMany(mappedBy = "statutSalarial", cascade = CascadeType.ALL)
+    @JsonIgnore                                   // <-- évite boucle
     private Set<CategorieSalariale> categoriesSalariales = new HashSet<>();
-    
-    // One-to-Many relationship with Echelon
+
     @OneToMany(mappedBy = "statutSalarial", cascade = CascadeType.ALL)
+    @JsonIgnore                                   // <-- évite boucle
     private Set<Echelon> echelons = new HashSet<>();
-    
-    // One-to-Many relationship with ProfilSalarial
+
     @OneToMany(mappedBy = "statutSalarial", cascade = CascadeType.ALL)
+    @JsonIgnore                                   // <-- évite boucle
     private Set<ProfilSalarial> profilsSalariaux = new HashSet<>();
-    
-    // Default constructor
+
     public StatutSalarial() {
     }
-    
-    // Constructor with essential fields
+
     public StatutSalarial(String idStatut, String codeStatut, String nomStatut) {
         this.idStatut = idStatut;
         this.codeStatut = codeStatut;
         this.nomStatut = nomStatut;
     }
-    
-    // Constructor with all fields except collections
-    public StatutSalarial(String idStatut, String codeStatut, String nomStatut, 
-                         String descriptionStatut, String raisonInactivite,
-                         Date dateDebut, Date dateFin) {
+
+    public StatutSalarial(String idStatut, String codeStatut, String nomStatut,
+                          String descriptionStatut, String raisonInactivite,
+                          Date dateDebut, Date dateFin) {
         this.idStatut = idStatut;
         this.codeStatut = codeStatut;
         this.nomStatut = nomStatut;
@@ -73,38 +71,9 @@ public class StatutSalarial {
         this.dateDebut = dateDebut;
         this.dateFin = dateFin;
     }
-    
-    // Helper methods for bidirectional relationship management
-    public void addCategorieSalariale(CategorieSalariale categorieSalariale) {
-        categoriesSalariales.add(categorieSalariale);
-        categorieSalariale.setStatutSalarial(this);
-    }
-    
-    public void removeCategorieSalariale(CategorieSalariale categorieSalariale) {
-        categoriesSalariales.remove(categorieSalariale);
-        categorieSalariale.setStatutSalarial(null);
-    }
-    
-    public void addEchelon(Echelon echelon) {
-        echelons.add(echelon);
-        echelon.setStatutSalarial(this);
-    }
-    
-    public void removeEchelon(Echelon echelon) {
-        echelons.remove(echelon);
-        echelon.setStatutSalarial(null);
-    }
-    
-    public void addProfilSalarial(ProfilSalarial profilSalarial) {
-        profilsSalariaux.add(profilSalarial);
-        profilSalarial.setStatutSalarial(this);
-    }
-    
-    public void removeProfilSalarial(ProfilSalarial profilSalarial) {
-        profilsSalariaux.remove(profilSalarial);
-        profilSalarial.setStatutSalarial(null);
-    }
-    
+
+    // Helpers...
+
     @Override
     public String toString() {
         return "StatutSalarial{" +
@@ -115,7 +84,7 @@ public class StatutSalarial {
                 ", dateFin=" + dateFin +
                 '}';
     }
-    
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -123,9 +92,10 @@ public class StatutSalarial {
         StatutSalarial that = (StatutSalarial) o;
         return idStatut != null && idStatut.equals(that.idStatut);
     }
-    
+
     @Override
     public int hashCode() {
         return getClass().hashCode();
     }
 }
+ 

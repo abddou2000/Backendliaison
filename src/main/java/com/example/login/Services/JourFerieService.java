@@ -1,3 +1,4 @@
+// src/main/java/com/example/login/Services/JourFerieService.java
 package com.example.login.Services;
 
 import com.example.login.Models.JourFerie;
@@ -10,12 +11,15 @@ import java.util.Optional;
 
 @Service
 public class JourFerieService {
+    private final JourFerieRepository repository;
 
     @Autowired
-    private JourFerieRepository repository;
+    public JourFerieService(JourFerieRepository repository) {
+        this.repository = repository;
+    }
 
-    public JourFerie create(JourFerie jourFerie) {
-        return repository.save(jourFerie);
+    public JourFerie create(JourFerie jf) {
+        return repository.save(jf);
     }
 
     public List<JourFerie> getAll() {
@@ -24,10 +28,6 @@ public class JourFerieService {
 
     public Optional<JourFerie> getById(String id) {
         return repository.findById(id);
-    }
-
-    public List<JourFerie> getByParametreur(String idParametreur) {
-        return repository.findByParametreur_IdConfigurateur(idParametreur);
     }
 
     public List<JourFerie> getRecurrentHolidays() {

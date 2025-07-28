@@ -1,86 +1,85 @@
+// src/main/java/com/example/login/Controllers/SocieteController.java
 package com.example.login.Controllers;
 
 import com.example.login.Models.Societe;
-import com.example.login.Repositories.SocieteRepository;
+import com.example.login.Services.SocieteService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/societes")
+@CrossOrigin(origins = "*")
 public class SocieteController {
+    private final SocieteService service;
 
     @Autowired
-    private SocieteRepository societeRepository;
+    public SocieteController(SocieteService service) {
+        this.service = service;
+    }
 
-    // CREATE a new Societe
     @PostMapping
-    public ResponseEntity<Societe> createSociete(@RequestBody Societe societe) {
-        Societe saved = societeRepository.save(societe);
-        return new ResponseEntity<>(saved, HttpStatus.CREATED);
+    public ResponseEntity<Societe> create(@RequestBody Societe s) {
+        return ResponseEntity.status(201).body(service.save(s));
     }
 
-    // READ all Societes
     @GetMapping
-    public ResponseEntity<List<Societe>> getAllSocietes() {
-        List<Societe> list = societeRepository.findAll();
-        return ResponseEntity.ok(list);
+    public ResponseEntity<List<Societe>> listAll() {
+        return ResponseEntity.ok(service.listAll());
     }
 
-    // READ a Societe by idSociete
-    @GetMapping("/{idSociete}")
-    public ResponseEntity<Societe> getSocieteById(@PathVariable String idSociete) {
-        Optional<Societe> optional = societeRepository.findByIdSociete(idSociete);
-        return optional
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
-        ///afficher tous les societes//
+    @GetMapping("/{id}")
+    public ResponseEntity<Societe> getById(@PathVariable String id) {
+        Societe s = service.getById(id);
+        return s == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(s);
     }
 
-    // READ a Societe by raisonSociale
-    @GetMapping("/search")
-    public ResponseEntity<Societe> getSocieteByRaison(@RequestParam String raisonSociale) {
-        Optional<Societe> optional = societeRepository.findByRaisonSociale(raisonSociale);
-        return optional
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    @PutMapping("/{id}")
+    public ResponseEntity<Societe> update(@PathVariable String id, @RequestBody Societe details) {
+        Societe updated = service.update(id, details);
+        return updated == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(updated);
     }
 
-    // UPDATE an existing Societe
-    @PutMapping("/{idSociete}")
-    public ResponseEntity<Societe> updateSociete(
-            @PathVariable String idSociete,
-            @RequestBody Societe societeDetails) {
-        return societeRepository.findById(idSociete)
-                .map(existing -> {
-                    existing.setRaisonSociale(societeDetails.getRaisonSociale());
-                    existing.setAdresse(societeDetails.getAdresse());
-                    existing.setTelephone(societeDetails.getTelephone());
-                    existing.setEmail(societeDetails.getEmail());
-                    existing.setSiteWeb(societeDetails.getSiteWeb());
-                    existing.setRc(societeDetails.getRc());
-                    existing.setIce(societeDetails.getIce());
-                    existing.setIfFiscal(societeDetails.getIfFiscal());
-                    existing.setCnss(societeDetails.getCnss());
-                    existing.setDateCreation(societeDetails.getDateCreation());
-                    Societe updated = societeRepository.save(existing);
-                    return ResponseEntity.ok(updated);
-                })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable String id) {
+        return service.delete(id) ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 
-    // DELETE a Societe by idSociete
-    @DeleteMapping("/{idSociete}")
-    public ResponseEntity<Void> deleteSociete(@PathVariable String idSociete) {
-        return societeRepository.findById(idSociete)
-                .map(existing -> {
-                    societeRepository.deleteById(idSociete);
-                    return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
-                })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    @GetMapping("/search/code")
+    public ResponseEntity<List<Societe>> byCode(@RequestParam String code) {
+        return ResponseEntity.ok(service.findByCode(code));
+    }
+
+    @GetMapping("/search/ville")
+    public ResponseEntity<List<Societe>> byVille(@RequestParam String ville) {
+        return ResponseEntity.ok(service.findByVille(ville));
+    }
+
+    @GetMapping("/search/period")
+    public ResponseEntity<List<Societe>> byPeriod(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date end) {
+        return ResponseEntity.ok(service.findByPeriod(start, end));
+    }
+
+    @GetMapping("/search/started-after")
+    public ResponseEntity<List<Societe>> startedAfter(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date) {
+        return ResponseEntity.ok(service.findStartedAfter(date));
+    }
+
+    @GetMapping("/search/ending-before")
+    public ResponseEntity<List<Societe>> endingBefore(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date) {
+        return ResponseEntity.ok(service.findEndingBefore(date));
+    }
+
+    @GetMapping("/search/banque")
+    public ResponseEntity<List<Societe>> byBanque(@RequestParam String nomBanque) {
+        return ResponseEntity.ok(service.findByNomBanque(nomBanque));
     }
 }
