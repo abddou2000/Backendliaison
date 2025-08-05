@@ -36,10 +36,11 @@ public class DemandeDocumentController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // CORRECTED METHOD: Changed @PathVariable to Long
     // READ BY EMPLOYE
-    @GetMapping("/employe/{idEmploye}")
-    public ResponseEntity<List<DemandeDocument>> getByEmploye(@PathVariable String idEmploye) {
-        return ResponseEntity.ok(service.getByEmploye(idEmploye));
+    @GetMapping("/employe/{id_user}")
+    public ResponseEntity<List<DemandeDocument>> getByEmploye(@PathVariable Long id_user) {
+        return ResponseEntity.ok(service.getByEmploye(id_user));
     }
 
     // READ BY TYPE

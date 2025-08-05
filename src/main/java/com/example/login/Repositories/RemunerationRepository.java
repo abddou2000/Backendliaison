@@ -8,5 +8,6 @@ import java.util.Optional;
 
 @Repository
 public interface RemunerationRepository extends JpaRepository<Remuneration, String> {
-    Optional<Remuneration> findByEmploye_IdEmploye(String idEmploye);
+    // CORRECTED METHOD: Renamed and changed parameter to Long
+    Optional<Remuneration> findByEmploye_Id(Long idEmploye);
 }

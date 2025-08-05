@@ -1,65 +1,34 @@
 package com.example.login.Services;
 
-import com.example.login.Models.EmployeSimple;
 import com.example.login.Models.Rh;
-import com.example.login.Models.Role;
-import com.example.login.Repositories.EmployeSimpleRepository;
-import com.example.login.Repositories.RhRepository;
-import com.example.login.Repositories.RoleRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Date;
 import java.util.List;
-import java.util.UUID;
+import java.util.Optional;
 
-@Service
-public class RhService {
+public interface RhService {
 
-    private final RhRepository rhRepository;
-    private final EmployeSimpleRepository employeRepository;
-    private final RoleRepository roleRepository;
+    /**
+     * Crée un nouveau profil RH pour un utilisateur existant.
+     * @param rhData Les données du profil (ID utilisateur et services).
+     * @return Le profil RH créé et sauvegardé.
+     */
+    Rh create(Rh rhData);
 
-    @Autowired
-    public RhService(RhRepository rhRepository,
-                     EmployeSimpleRepository employeRepository,
-                     RoleRepository roleRepository) {
-        this.rhRepository = rhRepository;
-        this.employeRepository = employeRepository;
-        this.roleRepository = roleRepository;
-    }
+    /**
+     * Récupère un profil RH par son ID.
+     * @param id L'ID de l'utilisateur.
+     * @return Un Optional contenant le profil RH s'il existe.
+     */
+    Optional<Rh> getById(Long id);
 
-    public List<Rh> getAllRhs() {
-        return rhRepository.findAll();
-    }
+    /**
+     * Récupère la liste de tous les profils RH.
+     * @return Une liste de tous les profils RH.
+     */
+    List<Rh> getAll();
 
-    public Rh getRh(String id) {
-        return rhRepository.findById(id).orElse(null);
-    }
-
-    @Transactional
-    public Rh createRh(Rh rh, EmployeSimple employeSimple) {
-        // Set role for employee
-        Role role = roleRepository.findByIdRole("RH")
-                .orElseThrow(() -> new RuntimeException("Role RH not found"));
-        employeSimple.setRole(role);
-
-        // Set password with {noop} prefix
-        employeSimple.setMotDePasse("{noop}" + employeSimple.getMotDePasse());
-
-        // Generate ID if not provided
-        if (employeSimple.getIdEmploye() == null) {
-            employeSimple.setIdEmploye(UUID.randomUUID().toString());
-        }
-
-        // Save employee first
-        employeRepository.save(employeSimple);
-
-        // Configure the RH
-        rh.setIdEmploye(employeSimple.getIdEmploye());
-        rh.setDateCreation(new Date());
-
-        return rhRepository.save(rh);
-    }
+    /**
+     * Supprime un utilisateur et son profil RH associé.
+     * @param id L'ID de l'utilisateur à supprimer.
+     */
+    void delete(Long id);
 }

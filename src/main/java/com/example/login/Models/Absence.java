@@ -17,7 +17,7 @@ public class Absence {
     private String idAbsence;
     
     @ManyToOne
-    @JoinColumn(name = "id_employe")
+    @JoinColumn(name = "id_user")
     private EmployeSimple employe;
     
     @ManyToOne

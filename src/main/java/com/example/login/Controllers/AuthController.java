@@ -1,85 +1,101 @@
 package com.example.login.Controllers;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UserDetails;
 
-import com.example.login.Models.EmployeSimple;
-import com.example.login.Repositories.EmployeSimpleRepository;
+import com.example.login.Models.Utilisateur;
+import com.example.login.Repositories.UtilisateurRepository;
 import com.example.login.Security.JwtUtil;
-import com.example.login.Security.CustomUserDetailsService;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Contrôleur gérant l'authentification des utilisateurs et la génération de JWT.
+ */
 @RestController
 @RequestMapping("/api")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
+    private final UserDetailsService userDetailsService;
     private final JwtUtil jwtUtil;
-    private final EmployeSimpleRepository employeRepository;
-    private final CustomUserDetailsService userDetailsService;
+    private final UtilisateurRepository utilisateurRepository;
 
     @Autowired
     public AuthController(
             AuthenticationManager authenticationManager,
+            UserDetailsService userDetailsService,
             JwtUtil jwtUtil,
-            EmployeSimpleRepository employeRepository,
-            CustomUserDetailsService userDetailsService) {
+            UtilisateurRepository utilisateurRepository
+    ) {
         this.authenticationManager = authenticationManager;
-        this.jwtUtil = jwtUtil;
-        this.employeRepository = employeRepository;
         this.userDetailsService = userDetailsService;
+        this.jwtUtil = jwtUtil;
+        this.utilisateurRepository = utilisateurRepository;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest request) {
         try {
-            // 1. Authentifier l'utilisateur
-            Authentication authentication = authenticationManager.authenticate(
+            // 1) Authentifier l’utilisateur
+            Authentication auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            loginRequest.getUsername(),
-                            loginRequest.getPassword()
+                            request.getUsername(),
+                            request.getPassword()
                     )
             );
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            SecurityContextHolder.getContext().setAuthentication(auth);
 
-            // 2. Charger UserDetails avec les rôles
-            UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getUsername());
+            // 2) Charger les détails (incluant les rôles)
+            UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
 
-            // 3. Générer JWT avec rôles
-            String jwt = jwtUtil.generateToken(userDetails);
+            // 3) Générer le token JWT
+            String token = jwtUtil.generateToken(userDetails);
 
-            // 4. Retrouver l'utilisateur en base pour info frontend
-            EmployeSimple employe = employeRepository.findByEmailPro(loginRequest.getUsername())
-                    .or(() -> employeRepository.findByEmailPerso(loginRequest.getUsername()))
-                    .orElseThrow(() -> new Exception("Utilisateur introuvable"));
+            // 4) Récupérer l’entité Utilisateur
+            Utilisateur user = utilisateurRepository
+                    .findByUsername(request.getUsername())
+                    .or(() -> utilisateurRepository.findByEmail(request.getUsername()))
+                    .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable"));
 
-            // 5. Construire la réponse utilisateur
-            Map<String, Object> userResponse = new HashMap<>();
-            userResponse.put("id", employe.getIdEmploye());
-            userResponse.put("nom", employe.getNom());
-            userResponse.put("prenom", employe.getPrenom());
-            userResponse.put("email", employe.getEmailPro());
-            userResponse.put("role", employe.getRole().getNomRole()); // 👍 nomRole (lisible)
+            // 5) Préparer la réponse JSON
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("id",     user.getId());
+            userInfo.put("nom",    user.getNom());
+            userInfo.put("prenom", user.getPrenom());
+            userInfo.put("email",  user.getEmail());
+            userInfo.put("role",   user.getRole().getType());
 
-            // 6. Retourner token + info utilisateur
-            Map<String, Object> response = new HashMap<>();
-            response.put("token", jwt);
-            response.put("user", userResponse);
+            Map<String, Object> body = new HashMap<>();
+            body.put("token", token);
+            body.put("user",  userInfo);
 
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(body);
 
-        } catch (BadCredentialsException e) {
-            return ResponseEntity.status(401).body("Échec de la connexion : Email ou mot de passe incorrect.");
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Erreur lors de la connexion : " + e.getMessage());
+        } catch (BadCredentialsException ex) {
+            return ResponseEntity.status(401)
+                    .body("Identifiants invalides");
+        } catch (AuthenticationException ex) {
+            return ResponseEntity.status(500)
+                    .body("Erreur d'authentification : " + ex.getMessage());
         }
+    }
+
+    /** DTO pour la requête de connexion. */
+    @Data
+    public static class LoginRequest {
+        private String username;
+        private String password;
     }
 }

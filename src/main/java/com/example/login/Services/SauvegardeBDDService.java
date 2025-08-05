@@ -51,7 +51,8 @@ public class SauvegardeBDDService {
         return repo.findAll();
     }
 
-    public List<SauvegardeBDD> listByAdmin(String idAdmin) {
-        return repo.findByCreePar_IdAdministrateur(idAdmin);
+    // CORRECTED METHOD: Changed to accept Long and call the new repository method
+    public List<SauvegardeBDD> listByAdmin(Long idAdmin) {
+        return repo.findByCreePar_Id(idAdmin);
     }
 }

@@ -42,8 +42,9 @@ public class SauvegardeBDDController {
     }
 
     // 🔍 Lister par administrateur
+    // CORRECTED METHOD: Changed @RequestParam to Long
     @GetMapping("/search/admin")
-    public ResponseEntity<List<SauvegardeBDD>> byAdmin(@RequestParam String idAdmin) {
+    public ResponseEntity<List<SauvegardeBDD>> byAdmin(@RequestParam Long idAdmin) {
         return ResponseEntity.ok(service.listByAdmin(idAdmin));
     }
 

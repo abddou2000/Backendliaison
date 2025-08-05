@@ -8,6 +8,8 @@ import java.util.List;
 
 @Repository
 public interface MesureRepository extends JpaRepository<Mesure, String> {
-    List<Mesure> findByEmploye_IdEmploye(String idEmploye);
+    // CORRECTED METHOD: Renamed and changed parameter to Long
+    List<Mesure> findByEmploye_Id(Long idEmploye);
+
     List<Mesure> findByTypeMesure_IdTypeMesure(String idTypeMesure);
 }

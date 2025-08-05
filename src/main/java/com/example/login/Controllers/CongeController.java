@@ -36,11 +36,13 @@ public class CongeController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // --- THIS IS THE CORRECTED METHOD ---
     // READ BY EMPLOYE
-    @GetMapping("/employe/{idEmploye}")
-    public ResponseEntity<List<Conge>> getByEmploye(@PathVariable String idEmploye) {
-        return ResponseEntity.ok(service.getByEmploye(idEmploye));
+    @GetMapping("/employe/{id_user}")
+    public ResponseEntity<List<Conge>> getByEmploye(@PathVariable Long id_user) {
+        return ResponseEntity.ok(service.getByEmploye(id_user));
     }
+    // ------------------------------------
 
     // UPDATE
     @PutMapping("/{id}")

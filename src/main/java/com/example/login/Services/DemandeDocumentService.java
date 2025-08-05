@@ -26,8 +26,9 @@ public class DemandeDocumentService {
         return repository.findById(id);
     }
 
-    public List<DemandeDocument> getByEmploye(String idEmploye) {
-        return repository.findByEmploye_IdEmploye(idEmploye);
+    // CORRECTED METHOD: Changed to accept Long and call the new repository method
+    public List<DemandeDocument> getByEmploye(Long idEmploye) {
+        return repository.findByEmploye_Id(idEmploye);
     }
 
     public List<DemandeDocument> getByType(String typeDocument) {

@@ -8,7 +8,9 @@ import java.util.List;
 
 @Repository
 public interface FichePaieRepository extends JpaRepository<FichePaie, String> {
-    List<FichePaie> findByEmploye_IdEmploye(String idEmploye);
+    // CORRECTED METHOD: Renamed and changed parameter to Long
+    List<FichePaie> findByEmploye_Id(Long idEmploye);
+
     List<FichePaie> findByPeriodePaie_IdPeriode(String idPeriode);
     List<FichePaie> findByPeriodeAnneeAndPeriodeMois(Integer annee, Integer mois);
 }

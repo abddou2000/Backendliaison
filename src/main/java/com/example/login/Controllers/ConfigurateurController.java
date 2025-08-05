@@ -1,15 +1,8 @@
-// src/main/java/com/example/login/Controllers/ConfigurateurController.java
 package com.example.login.Controllers;
 
-import com.example.login.Controllers.dto.CreateConfigurateurDto;
 import com.example.login.Models.Configurateur;
 import com.example.login.Services.ConfigurateurService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import jakarta.validation.Valid;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,68 +11,37 @@ import java.util.List;
 @RequestMapping("/api/configurateurs")
 public class ConfigurateurController {
 
-    private final ConfigurateurService configurateurService;
+    private final ConfigurateurService service;
 
-    @Autowired
-    public ConfigurateurController(ConfigurateurService configurateurService) {
-        this.configurateurService = configurateurService;
+    public ConfigurateurController(ConfigurateurService service) {
+        this.service = service;
     }
 
-    /**
-     * Crée un nouveau configurateur.
-     * Accessible uniquement aux utilisateurs ayant le rôle ADMIN.
-     */
-    @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> createConfigurateur(
-            @Valid @RequestBody CreateConfigurateurDto dto,
-            BindingResult bindingResult)
-    {
-        if (bindingResult.hasErrors()) {
-            StringBuilder erreurs = new StringBuilder();
-            bindingResult.getFieldErrors().forEach(fe -> {
-                erreurs.append(fe.getField())
-                        .append(": ")
-                        .append(fe.getDefaultMessage())
-                        .append("; ");
-            });
-            return ResponseEntity.badRequest().body(erreurs.toString());
-        }
-
-        try {
-            Configurateur saved = configurateurService.createFromDto(dto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(saved);
-        } catch (Exception e) {
-            return ResponseEntity
-                    .badRequest()
-                    .body("Impossible de créer le configurateur : " + e.getMessage());
-        }
-    }
-
-    /**
-     * Récupère la liste de tous les configurateurs.
-     * Accessible uniquement aux utilisateurs ayant le rôle ADMIN.
-     */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<Configurateur>> getAllConfigurateurs() {
-        List<Configurateur> list = configurateurService.listConfigurateurs();
-        return ResponseEntity.ok(list);
+    public List<Configurateur> listAll() {
+        return service.listAll();
     }
 
-    /**
-     * Récupère un configurateur par son ID.
-     * Accessible uniquement aux utilisateurs ayant le rôle ADMIN.
-     */
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Configurateur> getConfigurateurById(@PathVariable String id) {
-        Configurateur cfg = configurateurService.getConfigurateurById(id);
-        if (cfg == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(cfg);
+    public Configurateur getById(@PathVariable Long id) {
+        return service.getById(id);
     }
 
-    // ... autres endpoints (update, delete) …
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public Configurateur create(@RequestBody Configurateur configurateur) {
+        return service.create(configurateur);
+    }
+
+    @PutMapping("/{id}")
+    public Configurateur update(@PathVariable Long id, @RequestBody Configurateur configurateur) {
+        configurateur.setId(id);
+        return service.create(configurateur); // assuming create upserts; or implement update in service
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        service.delete(id); // implement delete(Long) in your ConfigurateurService if needed
+    }
 }

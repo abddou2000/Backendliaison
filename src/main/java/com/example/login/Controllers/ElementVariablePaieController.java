@@ -36,9 +36,10 @@ public class ElementVariablePaieController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // CORRECTED METHOD: Changed @PathVariable to Long
     // READ BY EMPLOYE
     @GetMapping("/employe/{idEmploye}")
-    public ResponseEntity<List<ElementVariablePaie>> getByEmploye(@PathVariable String idEmploye) {
+    public ResponseEntity<List<ElementVariablePaie>> getByEmploye(@PathVariable Long idEmploye) {
         return ResponseEntity.ok(service.getByEmploye(idEmploye));
     }
 

@@ -26,8 +26,9 @@ public class PrimeIndemniteRetenueService {
         return repository.findById(id);
     }
 
-    public List<PrimeIndemniteRetenue> getByEmploye(String idEmploye) {
-        return repository.findByEmploye_IdEmploye(idEmploye);
+    // CORRECTED METHOD: Changed to accept Long and call the new repository method
+    public List<PrimeIndemniteRetenue> getByEmploye(Long idEmploye) {
+        return repository.findByEmploye_Id(idEmploye);
     }
 
     public List<PrimeIndemniteRetenue> getByPeriode(String idPeriode) {

@@ -2,45 +2,31 @@ package com.example.login.Controllers;
 
 import com.example.login.Models.Role;
 import com.example.login.Services.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/roles")
-@CrossOrigin(origins = "*")
 public class RoleController {
+    private final RoleService service;
 
-    @Autowired
-    private RoleService service;
-
-    /** Créer ou mettre à jour un rôle */
-    @PostMapping
-    public ResponseEntity<Role> createOrUpdateRole(@RequestBody Role role) {
-        Role saved = service.saveRole(role);
-        return ResponseEntity.ok(saved);
+    public RoleController(RoleService Service) {
+        this.service = Service;
     }
 
-    /** Lister tous les rôles */
     @GetMapping
-    public ResponseEntity<List<Role>> listRoles() {
-        return ResponseEntity.ok(service.getAllRoles());
+    public List<Role> listAll() {
+        return service.getAllRoles();
     }
 
-    /** Récupérer un rôle par ID */
     @GetMapping("/{id}")
-    public ResponseEntity<Role> getRole(@PathVariable("id") String id) {
-        return service.getRoleById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public Role getById(@PathVariable Long id) {
+        return service.getById(id);
     }
 
-    /** Supprimer un rôle */
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRole(@PathVariable("id") String id) {
-        service.deleteRole(id);
-        return ResponseEntity.noContent().build();
+    @GetMapping("/type/{type}")
+    public Role getByType(@PathVariable String type) {
+        return service.getByType(type);
     }
 }

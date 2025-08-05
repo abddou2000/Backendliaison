@@ -1,31 +1,17 @@
 package com.example.login.Services;
 
 import com.example.login.Models.Administrateur;
-import com.example.login.Repositories.AdministrateurRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 
-@Service
-public class AdministrateurService {
+public interface AdministrateurService {
+    List<Administrateur> getAllAdministrateurs();
 
-    private final AdministrateurRepository administrateurRepository;
+    Administrateur getById(Long id);
 
-    @Autowired
-    public AdministrateurService(AdministrateurRepository administrateurRepository) {
-        this.administrateurRepository = administrateurRepository;
-    }
+    // --- SIGNATURE DE LA MÉTHODE CORRIGÉE ---
+    // La création du profil Administrateur ne nécessite plus le 'roleType'.
+    // Cette responsabilité appartient à la création de l'Utilisateur.
+    Administrateur create(Administrateur administrateur);
 
-    public List<Administrateur> getAllAdministrateurs() {
-        return administrateurRepository.findAll();
-    }
-
-    public Administrateur getAdministrateur(String id) {
-        return administrateurRepository.findById(id).orElse(null);
-    }
-
-    public Administrateur saveAdministrateur(Administrateur administrateur) {
-        return administrateurRepository.save(administrateur);
-    }
+    void delete(Long id);
 }

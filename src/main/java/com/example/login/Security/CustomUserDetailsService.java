@@ -1,52 +1,43 @@
 package com.example.login.Security;
 
-import com.example.login.Repositories.EmployeSimpleRepository;
+import com.example.login.Models.Utilisateur;
+import com.example.login.Repositories.UtilisateurRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional; // <-- 1. Importation ajoutée
+
+import java.util.Collections;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final EmployeSimpleRepository employeSimpleRepository;
+    private final UtilisateurRepository utilisateurRepository;
 
     @Autowired
-    public CustomUserDetailsService(EmployeSimpleRepository employeSimpleRepository) {
-        this.employeSimpleRepository = employeSimpleRepository;
+    public CustomUserDetailsService(UtilisateurRepository utilisateurRepository) {
+        this.utilisateurRepository = utilisateurRepository;
     }
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return employeSimpleRepository.findByEmailProWithRole(email)
-                .or(() -> employeSimpleRepository.findByEmailPersoWithRole(email))
-                .map(employeSimple -> {
-                    String password = employeSimple.getMotDePasse();
+    @Transactional(readOnly = true) // <-- 2. Annotation ajoutée
+    public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
+        Utilisateur user = utilisateurRepository
+                .findByUsername(usernameOrEmail)
+                .or(() -> utilisateurRepository.findByEmail(usernameOrEmail))
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        "Utilisateur introuvable : " + usernameOrEmail));
 
-                    // Nettoyage et gestion du mot de passe encodé
-                    if (password != null) {
-                        if (password.startsWith("{noop}") || password.startsWith("{bcrypt}")) {
-                            // OK
-                        } else if (password.startsWith("$2")) {
-                            password = "{bcrypt}" + password;
-                        } else {
-                            password = "{noop}" + password;
-                        }
-                    }
+        // Crée une autorité correspondant au type de rôle (ADMIN, RH, etc.)
+        SimpleGrantedAuthority authority =
+                new SimpleGrantedAuthority(user.getRole().getType());
 
-                    // Important : ajouter le préfixe ROLE_ attendu par Spring Security
-                    String roleName = employeSimple.getRole() != null
-                            ? employeSimple.getRole().getNomRole().toUpperCase()
-                            : "USER";
-
-                    return User.builder()
-                            .username(employeSimple.getEmailPro())
-                            .password(password)
-                            .roles(roleName) // Spring ajoutera "ROLE_" automatiquement ici
-                            .build();
-                })
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
+        // Retourne un User Spring Security avec username, mot de passe encodé et autorités
+        return new org.springframework.security.core.userdetails.User(
+                user.getUsername(),
+                user.getPasswordHash(),
+                Collections.singletonList(authority)
+        );
     }
 }

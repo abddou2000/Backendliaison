@@ -10,5 +10,6 @@ public interface SauvegardeBDDRepository extends JpaRepository<SauvegardeBDD, St
     /**
      * Récupérer toutes les sauvegardes créées par un administrateur donné
      */
-    List<SauvegardeBDD> findByCreePar_IdAdministrateur(String idAdmin);
+    // CORRECTED METHOD: Renamed and changed parameter to Long
+    List<SauvegardeBDD> findByCreePar_Id(Long idAdmin);
 }

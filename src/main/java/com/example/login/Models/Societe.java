@@ -143,4 +143,8 @@ public class Societe {
     public int hashCode() {
         return getClass().hashCode();
     }
+
+        public String getId() {
+            return this.idSociete;
+        }
 }

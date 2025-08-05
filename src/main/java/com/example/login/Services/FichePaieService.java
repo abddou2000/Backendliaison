@@ -26,8 +26,9 @@ public class FichePaieService {
         return repository.findById(id);
     }
 
-    public List<FichePaie> getByEmploye(String idEmploye) {
-        return repository.findByEmploye_IdEmploye(idEmploye);
+    // CORRECTED METHOD: Changed to accept Long and call the new repository method
+    public List<FichePaie> getByEmploye(Long idEmploye) {
+        return repository.findByEmploye_Id(idEmploye);
     }
 
     public List<FichePaie> getByPeriode(String idPeriode) {

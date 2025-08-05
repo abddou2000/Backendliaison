@@ -8,7 +8,9 @@ import java.util.List;
 
 @Repository
 public interface DemandeDocumentRepository extends JpaRepository<DemandeDocument, String> {
-    List<DemandeDocument> findByEmploye_IdEmploye(String idEmploye);
+    // CORRECTED METHOD: Renamed and changed parameter to Long
+    List<DemandeDocument> findByEmploye_Id(Long idEmploye);
+
     List<DemandeDocument> findByTypeDocument(String typeDocument);
     List<DemandeDocument> findByEtatDemande(String etatDemande);
 }

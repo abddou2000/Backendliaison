@@ -17,7 +17,7 @@ public class Remuneration {
     private String idRemuneration;
 
     @OneToOne
-    @JoinColumn(name = "id_employe", referencedColumnName = "idEmploye", unique = true)
+    @JoinColumn(name = "id_user", referencedColumnName = "id_user", unique = true)
     private EmployeSimple employe;
 
     @Column(name = "rib")

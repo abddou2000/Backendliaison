@@ -33,8 +33,9 @@ public class ResultatPaieController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // CORRECTED METHOD: Changed @PathVariable to Long
     @GetMapping("/employe/{empId}")
-    public ResponseEntity<List<ResultatPaie>> byEmploye(@PathVariable String empId) {
+    public ResponseEntity<List<ResultatPaie>> byEmploye(@PathVariable Long empId) {
         return ResponseEntity.ok(service.getByEmploye(empId));
     }
 

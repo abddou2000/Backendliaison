@@ -1,34 +1,25 @@
-// src/main/java/com/example/login/Models/Role.java
 package com.example.login.Models;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.List;
 
 @Entity
 @Table(name = "role")
 @Getter
 @Setter
-@JsonIdentityInfo(
-        generator = ObjectIdGenerators.PropertyGenerator.class,
-        property = "idRole"
-)
+@NoArgsConstructor
 public class Role {
-
     @Id
-    @Column(name = "idRole")
-    private String idRole;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_role")
+    private Long id;
 
-    @Column(name = "nomRole")
-    private String nomRole;
+    @Column(name = "type_role", nullable = false, unique = true)
+    private String type;
 
-    @Column(name = "description")
-    private String description;
-
-    @OneToMany(mappedBy = "role")
-    private List<EmployeSimple> employes;
+    public Role(String type) {
+        this.type = type;
+    }
 }

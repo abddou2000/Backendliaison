@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface CongeRepository extends JpaRepository<Conge, String> {
-    List<Conge> findByEmploye_IdEmploye(String idEmploye);
+    List<Conge> findByEmploye_Id(Long id);
 }

@@ -22,7 +22,7 @@ public class ElementVariablePaie {
     private PeriodePaie periodePaie;
     
     @ManyToOne
-    @JoinColumn(name = "id_employe")
+    @JoinColumn(name = "id_user")
     private EmployeSimple employe;
     
     @ManyToOne

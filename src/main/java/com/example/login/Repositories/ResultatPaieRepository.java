@@ -8,7 +8,9 @@ import java.util.List;
 
 @Repository
 public interface ResultatPaieRepository extends JpaRepository<ResultatPaie, String> {
-    List<ResultatPaie> findByEmploye_IdEmploye(String idEmploye);
+    // CORRECTED METHOD: Renamed and changed parameter to Long
+    List<ResultatPaie> findByEmploye_Id(Long idEmploye);
+
     List<ResultatPaie> findByPeriodePaie_IdPeriode(String idPeriode);
     List<ResultatPaie> findBySociete_IdSociete(String idSociete);
 }

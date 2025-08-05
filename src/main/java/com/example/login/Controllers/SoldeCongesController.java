@@ -37,14 +37,16 @@ public class SoldeCongesController {
     }
 
     // READ BY EMPLOYE ID
+    // CORRECTED METHOD 1: Changed @PathVariable to Long
     @GetMapping("/employe/{idEmploye}")
-    public ResponseEntity<List<SoldeConges>> getByEmploye(@PathVariable String idEmploye) {
+    public ResponseEntity<List<SoldeConges>> getByEmploye(@PathVariable Long idEmploye) {
         return ResponseEntity.ok(service.getByEmploye(idEmploye));
     }
 
     // READ BY EMPLOYE & ANNEE
+    // CORRECTED METHOD 2: Changed @PathVariable to Long
     @GetMapping("/employe/{idEmploye}/annee/{annee}")
-    public ResponseEntity<SoldeConges> getByEmployeAndAnnee(@PathVariable String idEmploye, @PathVariable Integer annee) {
+    public ResponseEntity<SoldeConges> getByEmployeAndAnnee(@PathVariable Long idEmploye, @PathVariable Integer annee) {
         return ResponseEntity.ok(service.getByEmployeAndAnnee(idEmploye, annee));
     }
 

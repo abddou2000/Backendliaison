@@ -77,4 +77,8 @@ public class TypeAbsence {
         this.dateDebut = dateDebut;
         this.dateFin = dateFin;
     }
+
+    public String getId() {
+        return this.idTypeAbsence;
+    }
 }

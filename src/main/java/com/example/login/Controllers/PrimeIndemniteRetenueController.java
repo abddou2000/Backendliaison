@@ -36,9 +36,10 @@ public class PrimeIndemniteRetenueController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // CORRECTED METHOD: Changed @PathVariable to Long
     // READ BY EMPLOYE
     @GetMapping("/employe/{idEmploye}")
-    public ResponseEntity<List<PrimeIndemniteRetenue>> getByEmploye(@PathVariable String idEmploye) {
+    public ResponseEntity<List<PrimeIndemniteRetenue>> getByEmploye(@PathVariable Long idEmploye) {
         return ResponseEntity.ok(service.getByEmploye(idEmploye));
     }
 

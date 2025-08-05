@@ -8,6 +8,9 @@ import java.util.List;
 
 @Repository
 public interface SoldeCongesRepository extends JpaRepository<SoldeConges, String> {
-    List<SoldeConges> findByEmploye_IdEmploye(String idEmploye);
-    SoldeConges findByEmploye_IdEmployeAndAnnee(String idEmploye, Integer annee);
+    // CORRECTED METHOD 1: Renamed and changed parameter to Long
+    List<SoldeConges> findByEmploye_Id(Long idEmploye);
+
+    // CORRECTED METHOD 2: Renamed and changed parameter to Long
+    SoldeConges findByEmploye_IdAndAnnee(Long idEmploye, Integer annee);
 }

@@ -27,8 +27,12 @@ public class CongeService {
         return repository.findById(id);
     }
 
-    public List<Conge> getByEmploye(String idEmploye) {
-        return repository.findByEmploye_IdEmploye(idEmploye);
+    /**
+     * THIS METHOD HAS BEEN CORRECTED.
+     * It now accepts a Long for the employee ID and calls the correct repository method.
+     */
+    public List<Conge> getByEmploye(Long idEmploye) {
+        return repository.findByEmploye_Id(idEmploye);
     }
 
     public List<Conge> getAll() {

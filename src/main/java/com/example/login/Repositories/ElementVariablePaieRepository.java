@@ -8,7 +8,9 @@ import java.util.List;
 
 @Repository
 public interface ElementVariablePaieRepository extends JpaRepository<ElementVariablePaie, Long> {
-    List<ElementVariablePaie> findByEmploye_IdEmploye(String idEmploye);
+    // CORRECTED METHOD: Renamed and changed parameter to Long
+    List<ElementVariablePaie> findByEmploye_Id(Long idEmploye);
+
     List<ElementVariablePaie> findByPeriodePaie_IdPeriode(String idPeriode);
     List<ElementVariablePaie> findByRubriquePaie_IdRubrique(String idRubrique);
 }

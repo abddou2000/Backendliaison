@@ -26,12 +26,14 @@ public class SoldeCongesService {
         return repository.findById(id);
     }
 
-    public List<SoldeConges> getByEmploye(String idEmploye) {
-        return repository.findByEmploye_IdEmploye(idEmploye);
+    // CORRECTED METHOD 1: Changed to accept Long and call the new repository method
+    public List<SoldeConges> getByEmploye(Long idEmploye) {
+        return repository.findByEmploye_Id(idEmploye);
     }
 
-    public SoldeConges getByEmployeAndAnnee(String idEmploye, Integer annee) {
-        return repository.findByEmploye_IdEmployeAndAnnee(idEmploye, annee);
+    // CORRECTED METHOD 2: Changed to accept Long and call the new repository method
+    public SoldeConges getByEmployeAndAnnee(Long idEmploye, Integer annee) {
+        return repository.findByEmploye_IdAndAnnee(idEmploye, annee);
     }
 
     public SoldeConges update(String id, SoldeConges updated) {

@@ -1,31 +1,31 @@
 package com.example.login.Models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Date;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+@Entity
+@Table(name = "administrateur")
 @Getter
 @Setter
-@Entity
+@NoArgsConstructor
 public class Administrateur {
-
     @Id
-    private String idAdministrateur;
+    @Column(name = "id_user")
+    private Long id;
 
-    private String nom;
-    private String prenom;
-    private String email;
-    private String telephone;
-    private Date dateModification;
+    @OneToOne(fetch = FetchType.LAZY)
+    @MapsId
+    @JoinColumn(name = "id_user")
+    @JsonBackReference // Côté "enfant" pour casser la boucle JSON
+    private Utilisateur utilisateur;
 
-    @OneToOne
-    @JoinColumn(name = "id_administrateur", referencedColumnName = "idEmploye", insertable = false, updatable = false)
-   @JsonIgnoreProperties({"administrateur", "configurateur", "rh"})
-   
-    private EmployeSimple employeSimple;
+    @Column(name = "niveau")
+    private String niveau;
 
+    public String getIdAdministrateur() {
+        return this.id != null ? this.id.toString() : null;
+    }
 }
-

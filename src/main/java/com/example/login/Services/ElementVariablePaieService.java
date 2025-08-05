@@ -26,8 +26,9 @@ public class ElementVariablePaieService {
         return repository.findById(id);
     }
 
-    public List<ElementVariablePaie> getByEmploye(String idEmploye) {
-        return repository.findByEmploye_IdEmploye(idEmploye);
+    // CORRECTED METHOD: Changed to accept Long and call the new repository method
+    public List<ElementVariablePaie> getByEmploye(Long idEmploye) {
+        return repository.findByEmploye_Id(idEmploye);
     }
 
     public List<ElementVariablePaie> getByPeriode(String idPeriode) {
