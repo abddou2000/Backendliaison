@@ -1,100 +1,68 @@
 package com.example.login.Controllers;
 
 import com.example.login.Models.Administrateur;
-import com.example.login.Models.EmployeSimple;
-import com.example.login.Models.Role;
 import com.example.login.Models.Utilisateur;
-import com.example.login.Repositories.AdministrateurRepository;
-import com.example.login.Repositories.EmployeSimpleRepository;
-import com.example.login.Repositories.RoleRepository;
-import com.example.login.Repositories.UtilisateurRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.login.Services.AdministrateurService;
+import com.example.login.Services.UtilisateurService;
+import lombok.Data; // <-- IMPORTATION À AJOUTER
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 @RestController
 @RequestMapping("/setup")
+@CrossOrigin(origins = "*")
 public class SetupController {
 
-    @Value("${app.setup.enabled:false}")
+    @Value("${app.setup.enabled:true}")
     private boolean setupEnabled;
 
-    @Value("${app.setup.key:}")
-    private String setupKey;
+    private final UtilisateurService utilisateurService;
+    private final AdministrateurService administrateurService;
 
-    private final RoleRepository roleRepository;
-    private final UtilisateurRepository utilisateurRepository;
-    private final EmployeSimpleRepository employeRepository;
-    private final AdministrateurRepository administrateurRepository;
-    private final PasswordEncoder passwordEncoder;
-
-    @Autowired
     public SetupController(
-            RoleRepository roleRepository,
-            UtilisateurRepository utilisateurRepository,
-            EmployeSimpleRepository employeRepository,
-            AdministrateurRepository administrateurRepository,
-            PasswordEncoder passwordEncoder
+            UtilisateurService utilisateurService,
+            AdministrateurService administrateurService
     ) {
-        this.roleRepository = roleRepository;
-        this.utilisateurRepository = utilisateurRepository;
-        this.employeRepository = employeRepository;
-        this.administrateurRepository = administrateurRepository;
-        this.passwordEncoder = passwordEncoder;
+        this.utilisateurService = utilisateurService;
+        this.administrateurService = administrateurService;
     }
 
     @PostMapping("/create-admin")
     @Transactional
-    public ResponseEntity<String> createAdmin(
-            @RequestBody EmployeSimple employeData,
-            @RequestParam(required = false) String key
-    ) {
-        // 1) Sécurité : autorisé seulement si setupEnabled ou bonne clé
-        if (!setupEnabled && (setupKey.isEmpty() || !setupKey.equals(key))) {
-            return ResponseEntity.status(403).body("Setup not enabled or invalid key");
+    public ResponseEntity<String> createAdmin(@RequestBody AdminSetupRequest request) {
+        if (!setupEnabled) {
+            return ResponseEntity.status(403).body("Le setup est désactivé.");
         }
 
-        // 2) Créer les rôles fixes s'ils n'existent pas
-        List<String> types = List.of("ADMIN", "RH", "CONFIGURATEUR", "EMPLOYE");
-        for (String t : types) {
-            roleRepository.findByType(t)
-                    .orElseGet(() -> roleRepository.save(new Role(t)));
-        }
+        // 1) Créer l'utilisateur via le service
+        Utilisateur adminUser = new Utilisateur();
+        adminUser.setUsername(request.getUsername());
+        adminUser.setEmail(request.getEmail());
+        adminUser.setNom(request.getNom());
+        adminUser.setPrenom(request.getPrenom());
+        // Le mot de passe sera généré automatiquement par le service
 
-        // 3) Récupérer le Role ADMIN
-        Role adminRole = roleRepository.findByType("ADMIN")
-                .orElseThrow(() -> new IllegalStateException("Role ADMIN non trouvé"));
+        Utilisateur savedUser = utilisateurService.create(adminUser, "ADMIN");
 
-        // 4) Créer et sauvegarder l'entité Utilisateur
-        Utilisateur u = employeData.getUtilisateur();
-        if (u == null) {
-            return ResponseEntity.badRequest().body("Utilisateur data is required");
-        }
-        u.setRole(adminRole);
-        // Encoder mot de passe en BCrypt
-        u.setPasswordHash(passwordEncoder.encode(u.getPasswordHash()));
-        // Initialiser autres champs
-        u.setEtatCompte("ACTIF");
-        u.setDateCreation(LocalDateTime.now());
-        u.setDateModification(null);
-        Utilisateur savedUser = utilisateurRepository.save(u);
+        // 2) Créer le profil Administrateur via son service
+        Administrateur adminProfileData = new Administrateur();
+        adminProfileData.setId(savedUser.getId());
+        adminProfileData.setNiveau(request.getNiveau());
 
-        // 5) Créer et sauvegarder l'EmployeSimple
-        employeData.setUtilisateur(savedUser);
-        EmployeSimple savedEmp = employeRepository.save(employeData);
+        administrateurService.create(adminProfileData);
 
-        // 6) Créer et sauvegarder le profil Administrateur
-        Administrateur admin = new Administrateur();
-        admin.setUtilisateur(savedUser);
-        admin.setNiveau("SUPER");
-        administrateurRepository.save(admin);
+        return ResponseEntity.ok("Admin créé avec succès pour l'utilisateur ID " + savedUser.getId() + ". Veuillez vérifier vos emails pour les identifiants.");
+    }
 
-        return ResponseEntity.ok("Admin created successfully with user id " + savedUser.getId());
+    // DTO pour recevoir les données de création de l'admin
+    @Data // <-- ANNOTATION MANQUANTE À AJOUTER ICI
+    static class AdminSetupRequest {
+        private String username;
+        private String email;
+        private String nom;
+        private String prenom;
+        private String niveau;
     }
 }

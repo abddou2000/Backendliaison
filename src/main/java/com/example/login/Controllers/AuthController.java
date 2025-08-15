@@ -1,7 +1,4 @@
 package com.example.login.Controllers;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import com.example.login.Models.Utilisateur;
 import com.example.login.Repositories.UtilisateurRepository;
@@ -9,22 +6,24 @@ import com.example.login.Security.JwtUtil;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.*;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Contrôleur gérant l'authentification des utilisateurs et la génération de JWT.
- */
 @RestController
 @RequestMapping("/api")
+@CrossOrigin(origins = "*")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
@@ -48,28 +47,37 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest request) {
         try {
-            // 1) Authentifier l’utilisateur
             Authentication auth = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            request.getUsername(),
-                            request.getPassword()
-                    )
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
             );
             SecurityContextHolder.getContext().setAuthentication(auth);
 
-            // 2) Charger les détails (incluant les rôles)
-            UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
-
-            // 3) Générer le token JWT
-            String token = jwtUtil.generateToken(userDetails);
-
-            // 4) Récupérer l’entité Utilisateur
             Utilisateur user = utilisateurRepository
                     .findByUsername(request.getUsername())
-                    .or(() -> utilisateurRepository.findByEmail(request.getUsername()))
-                    .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable"));
+                    .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable après authentification réussie."));
 
-            // 5) Préparer la réponse JSON
+            if (user.getEtatCompte() == Utilisateur.EtatCompte.EN_ATTENTE_CHANGEMENT_MDP ||
+                    (user.getDateExpirationMdp() != null && user.getDateExpirationMdp().isBefore(LocalDateTime.now()))) {
+
+                if (user.getEtatCompte() != Utilisateur.EtatCompte.EN_ATTENTE_CHANGEMENT_MDP) {
+                    user.setEtatCompte(Utilisateur.EtatCompte.BLOQUE);
+                    utilisateurRepository.save(user);
+                }
+
+                Map<String, Object> response = new HashMap<>();
+                response.put("action", "CHANGER_MDP");
+                response.put("message", "Votre mot de passe doit être changé.");
+                response.put("userId", user.getId());
+                return ResponseEntity.status(403).body(response);
+            }
+
+            if (user.getEtatCompte() == Utilisateur.EtatCompte.BLOQUE) {
+                return ResponseEntity.status(403).body("Votre compte est bloqué. Veuillez contacter un administrateur.");
+            }
+
+            final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
+            final String token = jwtUtil.generateToken(userDetails);
+
             Map<String, Object> userInfo = new HashMap<>();
             userInfo.put("id",     user.getId());
             userInfo.put("nom",    user.getNom());
@@ -83,16 +91,13 @@ public class AuthController {
 
             return ResponseEntity.ok(body);
 
-        } catch (BadCredentialsException ex) {
-            return ResponseEntity.status(401)
-                    .body("Identifiants invalides");
-        } catch (AuthenticationException ex) {
-            return ResponseEntity.status(500)
-                    .body("Erreur d'authentification : " + ex.getMessage());
+        } catch (BadCredentialsException ex) { // <-- BLOC CATCH QUI MANQUAIT
+            return ResponseEntity.status(401).body("Nom d'utilisateur ou mot de passe invalide.");
+        } catch (AuthenticationException ex) { // <-- BLOC CATCH QUI MANQUAIT
+            return ResponseEntity.status(500).body("Erreur interne lors de l'authentification : " + ex.getMessage());
         }
     }
 
-    /** DTO pour la requête de connexion. */
     @Data
     public static class LoginRequest {
         private String username;

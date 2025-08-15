@@ -4,13 +4,14 @@ import com.example.login.Models.Utilisateur;
 import com.example.login.Services.UtilisateurService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/utilisateurs")
+@CrossOrigin(origins = "*")
 public class UtilisateurController {
     private final UtilisateurService service;
 
@@ -35,10 +36,15 @@ public class UtilisateurController {
         return service.getById(id);
     }
 
+    // --- MÉTHODE "changePassword" MODIFIÉE SANS DTO ---
     @PutMapping("/{id}/password")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void changePassword(@PathVariable Long id,
-                               @RequestParam String newPassword) {
-        service.updatePassword(id, newPassword);
+    public ResponseEntity<Void> changePassword(
+            @PathVariable Long id,
+            @RequestParam String ancienMdp,
+            @RequestParam String nouveauMdp,
+            @RequestParam String confirmationMdp) {
+
+        service.updatePassword(id, ancienMdp, nouveauMdp, confirmationMdp);
+        return ResponseEntity.noContent().build();
     }
 }
