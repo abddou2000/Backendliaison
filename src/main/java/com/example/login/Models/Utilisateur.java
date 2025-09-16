@@ -36,6 +36,7 @@ public class Utilisateur {
     private String username;
 
     @Column(name = "password", nullable = false)
+    @JsonIgnore // Ne jamais envoyer le hash dans les réponses
     private String passwordHash;
 
     @Column(name = "nom", nullable = false)
@@ -66,9 +67,9 @@ public class Utilisateur {
     @Column(name = "date_expiration_token")
     private LocalDateTime dateExpirationToken;
 
+    // CHAMP TRANSIENT POUR RECEVOIR LE MOT DE PASSE DU JSON
     @Transient
-    @JsonIgnore // On n'expose jamais le mot de passe en clair dans les réponses
-    private String password;
+    private String password; // Suppression de toute annotation Jackson ici
 
     @OneToOne(mappedBy = "utilisateur", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference

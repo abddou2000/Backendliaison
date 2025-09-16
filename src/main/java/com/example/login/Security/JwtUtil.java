@@ -44,12 +44,17 @@ public class JwtUtil {
     }
 
     // ✅ Extrait les rôles du token
+    @SuppressWarnings("unchecked")
     public List<String> getRolesFromToken(String token) {
         Claims claims = extractAllClaims(token);
-        return claims.get("roles", List.class);
+        Object roles = claims.get("roles");
+        if (roles instanceof List) {
+            return (List<String>) roles;
+        }
+        return new ArrayList<>();
     }
 
-    // ✅ Valide la signature
+    // ✅ Valide la signature ET l'expiration
     public boolean validateJwtToken(String token) {
         try {
             Jwts.parserBuilder()
@@ -58,7 +63,29 @@ public class JwtUtil {
                     .parseClaimsJws(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
+            System.err.println("JWT validation error: " + e.getMessage());
             return false;
+        }
+    }
+
+    // ✅ Validation complète avec UserDetails (méthode additionnelle)
+    public boolean validateToken(String token, UserDetails userDetails) {
+        try {
+            String username = getUsernameFromToken(token);
+            return username.equals(userDetails.getUsername()) && validateJwtToken(token);
+        } catch (Exception e) {
+            System.err.println("Token validation with UserDetails failed: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // ✅ Vérifie si le token est expiré
+    public boolean isTokenExpired(String token) {
+        try {
+            Claims claims = extractAllClaims(token);
+            return claims.getExpiration().before(new Date());
+        } catch (Exception e) {
+            return true; // Si on ne peut pas lire le token, on considère qu'il est expiré
         }
     }
 

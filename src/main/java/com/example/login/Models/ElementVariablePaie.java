@@ -11,34 +11,34 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 public class ElementVariablePaie {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_element_variable")
     private Long idElementVariable;
-    
+
     @ManyToOne
     @JoinColumn(name = "id_periode")
     private PeriodePaie periodePaie;
-    
+
     @ManyToOne
     @JoinColumn(name = "id_user")
     private EmployeSimple employe;
-    
+
     @ManyToOne
     @JoinColumn(name = "id_rubrique")
     private RubriquePaie rubriquePaie;
-    
+
     @Column(name = "valeur")
     private BigDecimal valeur;
-    
+
     @Column(name = "commentaire")
     private String commentaire;
-    
+
     // Default constructor
     public ElementVariablePaie() {
     }
-    
+
     // Constructor with required fields
     public ElementVariablePaie(PeriodePaie periodePaie, EmployeSimple employe, RubriquePaie rubriquePaie, BigDecimal valeur) {
         this.periodePaie = periodePaie;
@@ -46,28 +46,29 @@ public class ElementVariablePaie {
         this.rubriquePaie = rubriquePaie;
         this.valeur = valeur;
     }
-    
+
     // Constructor with all fields except id
-    public ElementVariablePaie(PeriodePaie periodePaie, EmployeSimple employe, RubriquePaie rubriquePaie, 
-                             BigDecimal valeur, String commentaire) {
+    public ElementVariablePaie(PeriodePaie periodePaie, EmployeSimple employe, RubriquePaie rubriquePaie,
+                               BigDecimal valeur, String commentaire) {
         this.periodePaie = periodePaie;
         this.employe = employe;
         this.rubriquePaie = rubriquePaie;
         this.valeur = valeur;
         this.commentaire = commentaire;
     }
-    
+
     @Override
     public String toString() {
         return "ElementVariablePaie{" +
                 "idElementVariable=" + idElementVariable +
                 ", periodePaie=" + (periodePaie != null ? periodePaie.getIdPeriode() : null) +
-                ", employe=" + (employe != null ? employe.getIdEmploye() : null) +
+                // LA SEULE CORRECTION EST ICI :
+                ", employe=" + (employe != null ? employe.getId() : null) +
                 ", rubriquePaie=" + (rubriquePaie != null ? rubriquePaie.getIdRubrique() : null) +
                 ", valeur=" + valeur +
                 '}';
     }
-    
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -75,7 +76,7 @@ public class ElementVariablePaie {
         ElementVariablePaie that = (ElementVariablePaie) o;
         return idElementVariable != null && idElementVariable.equals(that.idElementVariable);
     }
-    
+
     @Override
     public int hashCode() {
         return getClass().hashCode();

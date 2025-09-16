@@ -54,17 +54,36 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         user.setRole(role);
         user.setDateCreation(LocalDateTime.now());
 
-        String motDePasseTemporaire = genererMotDePasseAleatoire();
-        user.setPasswordHash(encoder.encode(motDePasseTemporaire));
+        String motDePasseEnClair; // Variable pour stocker le mot de passe en clair pour l'email
 
-        user.setEtatCompte(Utilisateur.EtatCompte.EN_ATTENTE_CHANGEMENT_MDP);
-        user.setDateExpirationMdp(LocalDateTime.now().plusDays(3));
+        // MODIFICATION CRITIQUE : Utiliser le mot de passe fourni dans la requête
+        if (user.getPassword() != null && !user.getPassword().trim().isEmpty()) {
+            // Utiliser le mot de passe fourni par l'utilisateur
+            motDePasseEnClair = user.getPassword();
+            user.setPasswordHash(encoder.encode(user.getPassword()));
+            System.out.println("Utilisation du mot de passe fourni : " + user.getPassword());
+        } else {
+            // Fallback : générer un mot de passe temporaire si aucun n'est fourni
+            motDePasseEnClair = genererMotDePasseAleatoire();
+            user.setPasswordHash(encoder.encode(motDePasseEnClair));
+            System.out.println("Génération d'un mot de passe temporaire : " + motDePasseEnClair);
+        }
+
+        // MODIFICATION CRITIQUE : Rendre le compte ACTIF directement
+        user.setEtatCompte(Utilisateur.EtatCompte.ACTIF);
+        user.setDateExpirationMdp(LocalDateTime.now().plusMonths(6)); // 6 mois au lieu de 3 jours
+
+        System.out.println("Création utilisateur avec état : " + user.getEtatCompte());
 
         Utilisateur savedUser = userRepo.save(user);
 
-        // Envoyer les emails
-        emailService.envoyerEmailSimple(user.getEmail(), "Votre nom d'utilisateur pour [Nom App]", "Bonjour " + user.getPrenom() + ",\n\nVotre nom d'utilisateur est : " + user.getUsername());
-        emailService.envoyerEmailSimple(user.getEmail(), "Votre mot de passe initial pour [Nom App]", "Bonjour " + user.getPrenom() + ",\n\nVotre mot de passe temporaire est : " + motDePasseTemporaire + "\nIl est valide pendant 3 jours.");
+        // ENVOI DES EMAILS OBLIGATOIRE avec le mot de passe utilisé
+        emailService.envoyerEmailSimple(user.getEmail(), "Votre nom d'utilisateur pour [Nom App]",
+                "Bonjour " + user.getPrenom() + ",\n\nVotre nom d'utilisateur est : " + user.getUsername());
+
+        emailService.envoyerEmailSimple(user.getEmail(), "Votre mot de passe pour [Nom App]",
+                "Bonjour " + user.getPrenom() + ",\n\nVotre mot de passe est : " + motDePasseEnClair +
+                        "\n\nVotre compte est maintenant actif et vous pouvez vous connecter directement.");
 
         return savedUser;
     }
@@ -130,11 +149,10 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         userRepo.save(user);
     }
 
-    // N'oubliez pas d'ajouter findByTokenReinitialisation dans UtilisateurRepository
-    // public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> {
-    //    ...
-    //    Optional<Utilisateur> findByTokenReinitialisation(String token);
-    // }
+    @Override
+    public List<Utilisateur> getByRole(String roleType) {
+        return userRepo.findByRole_Type(roleType);
+    }
 
     private String genererMotDePasseAleatoire() {
         return "Temp" + UUID.randomUUID().toString().substring(0, 4).toUpperCase() + "$";

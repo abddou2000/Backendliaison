@@ -2,8 +2,11 @@ package com.example.login.Controllers;
 
 import com.example.login.Models.SauvegardeBDD;
 import com.example.login.Services.SauvegardeBDDService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.Data; // <-- Importation Lombok
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,53 +18,43 @@ public class SauvegardeBDDController {
 
     private final SauvegardeBDDService service;
 
-    @Autowired
     public SauvegardeBDDController(SauvegardeBDDService service) {
         this.service = service;
     }
 
-    // ➕ Créer une sauvegarde
-    @PostMapping
-    public ResponseEntity<SauvegardeBDD> create(@RequestBody SauvegardeBDD s) {
-        SauvegardeBDD saved = service.create(s);
-        return ResponseEntity.status(201).body(saved);
+    // DTO interne pour recevoir le mot de passe
+    @Data
+    static class PasswordRequest {
+        private String password;
     }
 
-    // 📄 Lister toutes les sauvegardes
     @GetMapping
-    public ResponseEntity<List<SauvegardeBDD>> listAll() {
-        return ResponseEntity.ok(service.listAll());
+    public ResponseEntity<List<SauvegardeBDD>> getAllSauvegardes() {
+        return ResponseEntity.ok(service.getAllSauvegardes());
     }
 
-    // 🔍 Obtenir par ID
-    @GetMapping("/{id}")
-    public ResponseEntity<SauvegardeBDD> getById(@PathVariable String id) {
-        SauvegardeBDD s = service.getById(id);
-        if (s == null) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(s);
+    @PostMapping("/lancer")
+    public ResponseEntity<SauvegardeBDD> lancerSauvegardeManuelle(@AuthenticationPrincipal UserDetails userDetails) {
+        // Note: Cette logique devra être améliorée pour extraire l'ID de userDetails
+        Long adminId = 1L;
+        SauvegardeBDD nouvelleSauvegarde = service.creerSauvegardeManuelle(adminId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(nouvelleSauvegarde);
     }
 
-    // 🔍 Lister par administrateur
-    // CORRECTED METHOD: Changed @RequestParam to Long
-    @GetMapping("/search/admin")
-    public ResponseEntity<List<SauvegardeBDD>> byAdmin(@RequestParam Long idAdmin) {
-        return ResponseEntity.ok(service.listByAdmin(idAdmin));
-    }
+    /**
+     * MODIFIÉ : Supprime toutes les archives après validation du mot de passe de l'admin connecté.
+     */
+    @DeleteMapping("/nettoyer")
+    public ResponseEntity<Void> nettoyerToutesLesArchives(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody PasswordRequest request) {
 
-    // ✏️ Mettre à jour
-    @PutMapping("/{id}")
-    public ResponseEntity<SauvegardeBDD> update(
-            @PathVariable String id,
-            @RequestBody SauvegardeBDD details) {
-        SauvegardeBDD updated = service.update(id, details);
-        if (updated == null) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(updated);
-    }
+        // On récupère le username de l'admin actuellement connecté via le token JWT
+        String adminUsername = userDetails.getUsername();
 
-    // ❌ Supprimer
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
-        if (!service.delete(id)) return ResponseEntity.notFound().build();
+        // On passe le username et le mot de passe au service pour validation
+        service.nettoyerToutesLesArchives(adminUsername, request.getPassword());
+
         return ResponseEntity.noContent().build();
     }
 }

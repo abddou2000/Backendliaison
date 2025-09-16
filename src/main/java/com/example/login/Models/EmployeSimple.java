@@ -1,7 +1,6 @@
 package com.example.login.Models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,47 +9,95 @@ import lombok.Setter;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "employe_simple")
+@Table(name = "employes_simple")
 @Getter
 @Setter
 @NoArgsConstructor
 public class EmployeSimple {
+
     @Id
     @Column(name = "id_user")
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @MapsId
-    @JoinColumn(name = "id_user")
-    @JsonBackReference // Côté "enfant" pour casser la boucle JSON
+    @MapsId // L'ID de cette entité sera le même que l'ID de l'utilisateur
+    @JoinColumn(name = "id_user") // Correction : nom de colonne cohérent
+    @JsonBackReference
     private Utilisateur utilisateur;
 
-    @Column(name = "cin", unique = true, nullable = false)
-    private String cin;
+    @Column(name = "matricule", unique = true, nullable = false)
+    private String matricule;
+
+    @Column(name = "adresse")
+    private String adresse;
+
+    @Column(name = "telephone")
+    private String telephone;
+
+    @Column(name = "poste_occupe")
+    private String posteOccupe;
 
     @Column(name = "date_naissance")
     private LocalDate dateNaissance;
 
-    @Column(name = "lieu_naissance")
-    private String lieuNaissance;
-
+    @Enumerated(EnumType.STRING)
     @Column(name = "genre")
-    private String genre;
+    private Genre genre;
+
+    @Column(name = "situation_familiale")
+    private String situationFamiliale;
+
+    @Column(name = "enfants_a_charge")
+    private Integer enfantsACharge;
+
+    @Column(name = "departement")
+    private String departement;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "unite_organisationnelle_id")
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private UniteOrganisationnelle uniteOrganisationnelle;
 
-    public Long getIdEmploye() {
-        return this.id;
+    @Column(name = "type_contrat")
+    private String typeContrat;
+
+    public enum Genre {
+        H, F
     }
 
-    public void setIdEmploye(Long idEmploye) {
-        this.id = idEmploye;
+    // Méthode utilitaire pour obtenir le nom complet
+    public String getNomComplet() {
+        if (utilisateur != null) {
+            return utilisateur.getPrenom() + " " + utilisateur.getNom();
+        }
+        return "";
     }
 
-    public Long getIdUtilisateur() {
-        return this.utilisateur != null ? this.utilisateur.getId() : null;
+    // Constructeur avec utilisateur
+    public EmployeSimple(Utilisateur utilisateur) {
+        this.utilisateur = utilisateur;
+        this.id = utilisateur.getId();
+    }
+
+    @Override
+    public String toString() {
+        return "EmployeSimple{" +
+                "id=" + id +
+                ", matricule='" + matricule + '\'' +
+                ", posteOccupe='" + posteOccupe + '\'' +
+                ", departement='" + departement + '\'' +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof EmployeSimple)) return false;
+        EmployeSimple that = (EmployeSimple) o;
+        return id != null && id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }
