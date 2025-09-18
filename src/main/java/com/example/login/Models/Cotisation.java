@@ -15,10 +15,16 @@ public class Cotisation {
     @Id
     @Column(name = "id_cotisation")
     private String idCotisation;
-    
+
     @Column(name = "type_cotisation")
     private String typeCotisation;
-    
+
+    @Column(name = "code_cotisation", nullable = false, unique = true)
+    private String codeCotisation;
+
+    @Column(name = "nom_cotisation", nullable = false)
+    private String nomCotisation;
+
     @ManyToOne
     @JoinColumn(name = "id_type_cotisation")
     private TypeCotisation typeCotisationRef;

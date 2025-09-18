@@ -31,10 +31,8 @@ public class TypeCotisationService {
             return null;
         }
         TypeCotisation existing = opt.get();
-        existing.setNomCotisation(details.getNomCotisation());
-        existing.setCodeCotisation(details.getCodeCotisation());
-        // Mise à jour du nouveau champ
-        existing.setCodeTypeCotisation(details.getCodeTypeCotisation());
+        existing.setNomTypeCotisation(details.getNomTypeCotisation()); // ✅ renommé
+        existing.setCodeTypeCotisation(details.getCodeTypeCotisation()); // ✅ conservé
         existing.setDescription(details.getDescription());
         existing.setDateDebut(details.getDateDebut());
         existing.setDateFin(details.getDateFin());
@@ -60,14 +58,9 @@ public class TypeCotisationService {
         return repo.findAll();
     }
 
-    /** Recherche par nom */
-    public List<TypeCotisation> findByName(String nom) {
-        return repo.findByNomCotisation(nom);
-    }
-
-    /** Recherche par code */
-    public List<TypeCotisation> findByCode(String code) {
-        return repo.findByCodeCotisation(code);
+    /** Recherche par nom de type */
+    public List<TypeCotisation> findByName(String nomTypeCotisation) {
+        return repo.findByNomTypeCotisation(nomTypeCotisation);
     }
 
     /** Recherche par code de type de cotisation */

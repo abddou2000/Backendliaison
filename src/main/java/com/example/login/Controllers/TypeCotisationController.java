@@ -64,19 +64,13 @@ public class TypeCotisationController {
                 : ResponseEntity.notFound().build();
     }
 
-    /** Recherche par nom exact */
+    /** Recherche par nom de type */
     @GetMapping("/search/nom")
-    public ResponseEntity<List<TypeCotisation>> byName(@RequestParam String nom) {
-        return ResponseEntity.ok(service.findByName(nom));
+    public ResponseEntity<List<TypeCotisation>> byName(@RequestParam String nomType) {
+        return ResponseEntity.ok(service.findByName(nomType));
     }
 
-    /** Recherche par code exact */
-    @GetMapping("/search/code")
-    public ResponseEntity<List<TypeCotisation>> byCode(@RequestParam String code) {
-        return ResponseEntity.ok(service.findByCode(code));
-    }
-
-    /** Recherche par code de type de cotisation exact */
+    /** Recherche par code de type de cotisation */
     @GetMapping("/search/code-type")
     public ResponseEntity<List<TypeCotisation>> byCodeType(@RequestParam("codeType") String codeType) {
         return ResponseEntity.ok(service.findByCodeTypeCotisation(codeType));

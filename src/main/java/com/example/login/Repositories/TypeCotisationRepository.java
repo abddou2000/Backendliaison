@@ -8,11 +8,9 @@ import java.util.List;
 
 public interface TypeCotisationRepository extends JpaRepository<TypeCotisation, String> {
 
-    /** 1. Recherche par nom exact */
-    List<TypeCotisation> findByNomCotisation(String nom);
 
-    /** 2. Recherche par code exact (ancien) */
-    List<TypeCotisation> findByCodeCotisation(String code);
+    List<TypeCotisation> findByNomTypeCotisation(String nomTypeCotisation);
+
 
     /** 3. Recherche par code de type de cotisation exact (nouveau) */
     List<TypeCotisation> findByCodeTypeCotisation(String codeTypeCotisation);

@@ -17,14 +17,10 @@ public class TypeCotisation {
     @Column(name = "id_type_cotisation")
     private String idTypeCotisation;
 
-    @Column(name = "nom_cotisation")
-    private String nomCotisation;
+    @Column(name = "nom_type_cotisation") // renommé
+    private String nomTypeCotisation;
 
-    @Column(name = "code_cotisation")
-    private String codeCotisation;
-
-    // Nouveau champ pour le code de type de cotisation
-    @Column(name = "code_type_cotisation")
+    @Column(name = "code_type_cotisation") // conservé
     private String codeTypeCotisation;
 
     @Column(name = "description")
@@ -42,69 +38,39 @@ public class TypeCotisation {
     private List<Cotisation> cotisations;
 
     // Default constructor
-    public TypeCotisation() {
-    }
+    public TypeCotisation() {}
 
     // Constructor with essential fields
     public TypeCotisation(String idTypeCotisation,
-                          String nomCotisation,
-                          String codeCotisation,
+                          String nomTypeCotisation,
+                          String codeTypeCotisation,
                           Date dateDebut) {
         this.idTypeCotisation = idTypeCotisation;
-        this.nomCotisation = nomCotisation;
-        this.codeCotisation = codeCotisation;
+        this.nomTypeCotisation = nomTypeCotisation;
+        this.codeTypeCotisation = codeTypeCotisation;
         this.dateDebut = dateDebut;
     }
 
-    // Constructor with all fields including nouveau codeTypeCotisation
+    // Constructor with all fields
     public TypeCotisation(String idTypeCotisation,
-                          String nomCotisation,
-                          String codeCotisation,
+                          String nomTypeCotisation,
                           String codeTypeCotisation,
                           String description,
                           Date dateDebut,
                           Date dateFin) {
         this.idTypeCotisation = idTypeCotisation;
-        this.nomCotisation = nomCotisation;
-        this.codeCotisation = codeCotisation;
+        this.nomTypeCotisation = nomTypeCotisation;
         this.codeTypeCotisation = codeTypeCotisation;
         this.description = description;
         this.dateDebut = dateDebut;
         this.dateFin = dateFin;
     }
 
-    // Create a new contribution type (placeholder)
-    public static TypeCotisation createTypeCotisation(TypeCotisation data) {
-        return data;
-    }
-
-    // Update existing contribution type (placeholder)
-    public static TypeCotisation updateTypeCotisation(String id, TypeCotisation data) {
-        data.setIdTypeCotisation(id);
-        return data;
-    }
-
-    // Delete a contribution type (placeholder)
-    public static boolean deleteTypeCotisation(String id) {
-        return false;
-    }
-
-    // Get a contribution type by ID (placeholder)
-    public static TypeCotisation getTypeCotisationById(String id) {
-        return null;
-    }
-
-    // List all contribution types (placeholder)
-    public static List<TypeCotisation> listTypeCotisations() {
-        return null;
-    }
-
     @Override
     public String toString() {
         return "TypeCotisation{" +
                 "idTypeCotisation='" + idTypeCotisation + '\'' +
-                ", nomCotisation='" + nomCotisation + '\'' +
-                ", codeCotisation='" + codeCotisation + '\'' +
+                ", nomTypeCotisation='" + nomTypeCotisation + '\'' +
                 ", codeTypeCotisation='" + codeTypeCotisation + '\'' +
                 ", description='" + description + '\'' +
                 ", dateDebut=" + dateDebut +
