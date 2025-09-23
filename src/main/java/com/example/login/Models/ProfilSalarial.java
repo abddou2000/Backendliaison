@@ -1,7 +1,7 @@
 package com.example.login.Models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;   // <-- import ajouté
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,15 +26,23 @@ public class ProfilSalarial {
     @Column(name = "nom_profil")
     private String nomProfil;
 
-    @ManyToOne(fetch = FetchType.LAZY)   // <-- LAZY
+    // NOUVEAU CHAMP - CATEGORIE
+    @Column(name = "categorie")
+    private String categorie;
+
+    // NOUVEAU CHAMP - PRIMES ASSOCIEES
+    @Column(name = "primes_associees", precision = 10, scale = 2)
+    private BigDecimal primesAssociees;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_categorie_salariale")
-    @JsonIgnoreProperties({"profilsSalariaux", "echelons", "hibernateLazyInitializer", "handler"}) // <-- ignore boucles
+    @JsonIgnoreProperties({"profilsSalariaux", "echelons", "hibernateLazyInitializer", "handler"})
     private CategorieSalariale categorieSalariale;
 
-    @ManyToOne(fetch = FetchType.LAZY)   // <-- LAZY
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_statut_salarial")
     @JsonIgnoreProperties({"profilsSalariaux", "categoriesSalariales", "echelons",
-            "hibernateLazyInitializer", "handler"}) // <-- ignore boucles
+            "hibernateLazyInitializer", "handler"})
     private StatutSalarial statutSalarial;
 
     @Column(name = "fonction")
@@ -44,7 +52,7 @@ public class ProfilSalarial {
     private BigDecimal salaireBase;
 
     @OneToMany(mappedBy = "profilSalarial", cascade = CascadeType.ALL)
-    @JsonIgnore  // <-- si tu n’as pas besoin de renvoyer la liste, on l’ignore pour éviter d’autres cycles
+    @JsonIgnore
     private Set<PrimeIndemniteRetenue> primes = new HashSet<>();
 
     @Temporal(TemporalType.DATE)
@@ -84,6 +92,8 @@ public class ProfilSalarial {
                 "idProfil='" + idProfil + '\'' +
                 ", codeProfil='" + codeProfil + '\'' +
                 ", nomProfil='" + nomProfil + '\'' +
+                ", categorie='" + categorie + '\'' +
+                ", primesAssociees=" + primesAssociees +
                 ", fonction='" + fonction + '\'' +
                 ", salaireBase=" + salaireBase +
                 ", dateDebut=" + dateDebut +

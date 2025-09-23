@@ -19,9 +19,16 @@ public class GrilleSalariale {
     @Column(name = "id_grille")
     private String idGrille;
 
-    // NOUVEAU CHAMP
     @Column(name = "code_grille", nullable = false, unique = true, length = 50)
     private String codeGrille;
+
+    // NOUVEAU CHAMP - NIVEAU
+    @Column(name = "niveau", nullable = false)
+    private Integer niveau;
+
+    // NOUVEAU CHAMP - ECHELON
+    @Column(name = "echelon_grille", nullable = false)
+    private Integer echelonGrille;
 
     @Column(name = "anciennete_min")
     private Integer ancienneteMin;
@@ -43,10 +50,12 @@ public class GrilleSalariale {
 
     public GrilleSalariale() {}
 
-    public GrilleSalariale(String idGrille, String codeGrille,
+    public GrilleSalariale(String idGrille, String codeGrille, Integer niveau, Integer echelonGrille,
                            Integer ancienneteMin, BigDecimal salaireMin) {
         this.idGrille = idGrille;
         this.codeGrille = codeGrille;
+        this.niveau = niveau;
+        this.echelonGrille = echelonGrille;
         this.ancienneteMin = ancienneteMin;
         this.salaireMin = salaireMin;
     }
@@ -56,6 +65,8 @@ public class GrilleSalariale {
         return "GrilleSalariale{" +
                 "idGrille='" + idGrille + '\'' +
                 ", codeGrille='" + codeGrille + '\'' +
+                ", niveau=" + niveau +
+                ", echelonGrille=" + echelonGrille +
                 ", ancienneteMin=" + ancienneteMin +
                 ", salaireMin=" + salaireMin +
                 ", dateDebut=" + dateDebut +
