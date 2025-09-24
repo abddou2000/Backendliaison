@@ -14,8 +14,8 @@ public class ParametrageEtat {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "nom_formulaire", nullable = false, length = 10)
-    private String nomFormulaire; // BP, JP, AT, AS
+    @Column(name = "nom_formulaire", nullable = true , length = 10)
+    private String nomFormulaire;
 
     @Column(name = "nom_champ", nullable = false, length = 100)
     private String nomChamp;
