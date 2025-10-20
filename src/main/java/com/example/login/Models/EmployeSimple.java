@@ -20,13 +20,14 @@ public class EmployeSimple {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @MapsId // L'ID de cette entité sera le même que l'ID de l'utilisateur
-    @JoinColumn(name = "id_user") // Correction : nom de colonne cohérent
+    @MapsId
+    @JoinColumn(name = "id_user")
     @JsonBackReference
     private Utilisateur utilisateur;
 
-    @Column(name = "matricule", unique = true, nullable = false)
-    private String matricule;
+    // ✅ MATRICULE SUPPRIMÉ (il est maintenant dans Utilisateur)
+    // @Column(name = "matricule", unique = true, nullable = false)
+    // private String matricule;
 
     @Column(name = "adresse")
     private String adresse;
@@ -64,6 +65,11 @@ public class EmployeSimple {
         H, F
     }
 
+    // ✅ Méthode utilitaire pour obtenir le matricule via l'utilisateur
+    public String getMatricule() {
+        return utilisateur != null ? utilisateur.getMatricule() : null;
+    }
+
     // Méthode utilitaire pour obtenir le nom complet
     public String getNomComplet() {
         if (utilisateur != null) {
@@ -82,7 +88,7 @@ public class EmployeSimple {
     public String toString() {
         return "EmployeSimple{" +
                 "id=" + id +
-                ", matricule='" + matricule + '\'' +
+                ", matricule='" + getMatricule() + '\'' +
                 ", posteOccupe='" + posteOccupe + '\'' +
                 ", departement='" + departement + '\'' +
                 '}';

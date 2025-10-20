@@ -1,4 +1,4 @@
-package com.example.login.Services.Impl;
+package com.example.login.Services;
 
 import com.example.login.Models.EmployeSimple;
 import com.example.login.Repositories.EmployeSimpleRepository;
@@ -41,7 +41,8 @@ public class EmployeSimpleServiceImpl implements EmployeSimpleService {
     @Override
     @Transactional(readOnly = true)
     public Optional<EmployeSimple> findByMatricule(String matricule) {
-        return employeSimpleRepository.findByMatricule(matricule);
+        // ✅ Le matricule est maintenant dans Utilisateur
+        return employeSimpleRepository.findByUtilisateurMatricule(matricule);
     }
 
     @Override
@@ -116,7 +117,8 @@ public class EmployeSimpleServiceImpl implements EmployeSimpleService {
     @Override
     @Transactional(readOnly = true)
     public boolean existsByMatricule(String matricule) {
-        return employeSimpleRepository.existsByMatricule(matricule);
+        // ✅ Le matricule est maintenant dans Utilisateur
+        return employeSimpleRepository.existsByUtilisateurMatricule(matricule);
     }
 
     @Override
@@ -156,25 +158,15 @@ public class EmployeSimpleServiceImpl implements EmployeSimpleService {
     }
 
     /**
-     * Validation métier d'un employé
+     * ✅ Validation métier d'un employé (matricule supprimé car maintenant dans Utilisateur)
      */
     private void validateEmploye(EmployeSimple employe) {
         if (employe == null) {
             throw new IllegalArgumentException("L'employé ne peut pas être null");
         }
 
-        if (employe.getMatricule() == null || employe.getMatricule().trim().isEmpty()) {
-            throw new IllegalArgumentException("Le matricule est obligatoire");
-        }
-
         if (employe.getUtilisateur() == null) {
             throw new IllegalArgumentException("L'utilisateur associé est obligatoire");
-        }
-
-        // Vérifier l'unicité du matricule (sauf pour l'employé actuel en cas de mise à jour)
-        Optional<EmployeSimple> existingEmploye = employeSimpleRepository.findByMatricule(employe.getMatricule());
-        if (existingEmploye.isPresent() && !existingEmploye.get().getId().equals(employe.getId())) {
-            throw new IllegalArgumentException("Le matricule " + employe.getMatricule() + " existe déjà");
         }
 
         // Validation de la date de naissance

@@ -14,14 +14,14 @@ import java.util.Optional;
 public interface EmployeSimpleRepository extends JpaRepository<EmployeSimple, Long> {
 
     /**
-     * Trouver un employé par son matricule
+     * ✅ MODIFIÉ : Trouver un employé par le matricule de son utilisateur
      */
-    Optional<EmployeSimple> findByMatricule(String matricule);
+    Optional<EmployeSimple> findByUtilisateurMatricule(String matricule);
 
     /**
-     * Vérifier si un matricule existe
+     * ✅ MODIFIÉ : Vérifier si un matricule existe dans utilisateur
      */
-    boolean existsByMatricule(String matricule);
+    boolean existsByUtilisateurMatricule(String matricule);
 
     /**
      * Trouver les employés par département
@@ -99,10 +99,10 @@ public interface EmployeSimpleRepository extends JpaRepository<EmployeSimple, Lo
     List<String> findDistinctTypesContrat();
 
     /**
-     * Recherche générale par terme (nom, prénom, matricule, département, poste)
+     * ✅ MODIFIÉ : Recherche générale par terme (nom, prénom, matricule dans utilisateur, département, poste)
      */
     @Query("SELECT e FROM EmployeSimple e WHERE " +
-            "LOWER(e.matricule) LIKE LOWER(CONCAT('%', :terme, '%')) OR " +
+            "LOWER(e.utilisateur.matricule) LIKE LOWER(CONCAT('%', :terme, '%')) OR " +
             "LOWER(e.departement) LIKE LOWER(CONCAT('%', :terme, '%')) OR " +
             "LOWER(e.posteOccupe) LIKE LOWER(CONCAT('%', :terme, '%')) OR " +
             "LOWER(e.utilisateur.nom) LIKE LOWER(CONCAT('%', :terme, '%')) OR " +

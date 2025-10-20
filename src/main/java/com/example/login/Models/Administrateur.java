@@ -12,6 +12,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class Administrateur {
+
     @Id
     @Column(name = "id_user")
     private Long id;
@@ -19,11 +20,16 @@ public class Administrateur {
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "id_user")
-    @JsonBackReference // Côté "enfant" pour casser la boucle JSON
+    @JsonBackReference
     private Utilisateur utilisateur;
 
     @Column(name = "niveau")
     private String niveau;
+
+    // ✅ Méthode utilitaire pour obtenir le matricule via l'utilisateur
+    public String getMatricule() {
+        return utilisateur != null ? utilisateur.getMatricule() : null;
+    }
 
     public String getIdAdministrateur() {
         return this.id != null ? this.id.toString() : null;

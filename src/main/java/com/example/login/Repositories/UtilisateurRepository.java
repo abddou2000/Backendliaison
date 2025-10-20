@@ -16,6 +16,8 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> 
 
     Optional<Utilisateur> findByTokenReinitialisation(String token);
 
-    // NOUVELLE MÉTHODE AJOUTÉE - Pour filtrer par type de rôle
     List<Utilisateur> findByRole_Type(String type);
+
+    // ✅ NOUVELLE MÉTHODE : Pour la vérification d'unicité du matricule
+    Optional<Utilisateur> findByMatricule(String matricule);
 }

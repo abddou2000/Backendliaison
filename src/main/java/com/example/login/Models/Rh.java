@@ -12,6 +12,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class Rh {
+
     @Id
     @Column(name = "id_user")
     private Long id;
@@ -19,9 +20,18 @@ public class Rh {
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "id_user")
-    @JsonBackReference // Côté "enfant" pour casser la boucle JSON
+    @JsonBackReference
     private Utilisateur utilisateur;
 
-    @Column(name = "services")
-    private String services;
+    @Column(name = "departement_gere")
+    private String departementGere;
+
+    // ✅ Méthode utilitaire pour obtenir le matricule via l'utilisateur
+    public String getMatricule() {
+        return utilisateur != null ? utilisateur.getMatricule() : null;
+    }
+
+    public String getIdRh() {
+        return this.id != null ? this.id.toString() : null;
+    }
 }

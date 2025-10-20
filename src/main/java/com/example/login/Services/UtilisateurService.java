@@ -11,7 +11,8 @@ public interface UtilisateurService {
     void updatePassword(Long userId, String ancienMdp, String nouveauMdp, String confirmationMdp);
     void demanderReinitialisation(String email);
     void reinitialiserMdp(String token, String nouveauMdp, String confirmationMdp);
-
-    // NOUVELLE MÉTHODE AJOUTÉE
     List<Utilisateur> getByRole(String roleType);
+    Utilisateur updateUtilisateurDetails(Long id, String nom, String prenom, String email, String username, String matricule, Boolean actif);
+    void adminResetPassword(Long userId, String nouveauMdp);
+    void deleteUtilisateur(Long userId);
 }

@@ -1,9 +1,7 @@
 package com.example.login.Controllers;
 
 import com.example.login.Models.EmployeSimple;
-import com.example.login.Models.Utilisateur;
 import com.example.login.Services.EmployeSimpleService;
-import com.example.login.Services.UtilisateurService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,9 +22,6 @@ public class EmployeSimpleController {
 
     @Autowired
     private EmployeSimpleService employeSimpleService;
-
-    @Autowired
-    private UtilisateurService utilisateurService;
 
     /**
      * Récupérer tous les employés avec pagination
@@ -84,6 +79,7 @@ public class EmployeSimpleController {
 
     /**
      * Récupérer un employé par matricule
+     * ✅ Le matricule est maintenant dans Utilisateur
      */
     @GetMapping("/matricule/{matricule}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RH')")
@@ -109,8 +105,6 @@ public class EmployeSimpleController {
                 return ResponseEntity.badRequest().build();
             }
 
-
-
             EmployeSimple savedEmploye = employeSimpleService.save(employe);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedEmploye);
         } catch (Exception e) {
@@ -119,7 +113,9 @@ public class EmployeSimpleController {
     }
 
     /**
-     * Mettre à jour un employé
+     * ✅ Mettre à jour un employé
+     * Le matricule est maintenant géré au niveau de l'Utilisateur
+     * Grâce à cascade, la modification de l'utilisateur sera sauvegardée automatiquement
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RH')")
@@ -133,10 +129,12 @@ public class EmployeSimpleController {
 
             EmployeSimple employe = optionalEmploye.get();
 
-            // Mise à jour des champs
-            if (employeDetails.getMatricule() != null) {
-                employe.setMatricule(employeDetails.getMatricule());
+            // ✅ Mise à jour du matricule au niveau de l'Utilisateur (si fourni)
+            if (employeDetails.getUtilisateur() != null && employeDetails.getUtilisateur().getMatricule() != null) {
+                employe.getUtilisateur().setMatricule(employeDetails.getUtilisateur().getMatricule());
             }
+
+            // Mise à jour des autres champs de l'employé
             if (employeDetails.getAdresse() != null) {
                 employe.setAdresse(employeDetails.getAdresse());
             }
@@ -164,7 +162,11 @@ public class EmployeSimpleController {
             if (employeDetails.getTypeContrat() != null) {
                 employe.setTypeContrat(employeDetails.getTypeContrat());
             }
+            if (employeDetails.getUniteOrganisationnelle() != null) {
+                employe.setUniteOrganisationnelle(employeDetails.getUniteOrganisationnelle());
+            }
 
+            // ✅ La sauvegarde de l'employé sauvegarde aussi l'utilisateur grâce au CascadeType.ALL
             EmployeSimple updatedEmploye = employeSimpleService.save(employe);
             return ResponseEntity.ok(updatedEmploye);
         } catch (Exception e) {

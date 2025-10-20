@@ -36,7 +36,7 @@ public class Utilisateur {
     private String username;
 
     @Column(name = "password", nullable = false)
-    @JsonIgnore // Ne jamais envoyer le hash dans les réponses
+    @JsonIgnore
     private String passwordHash;
 
     @Column(name = "nom", nullable = false)
@@ -47,6 +47,10 @@ public class Utilisateur {
 
     @Column(name = "email", nullable = false, unique = true)
     private String email;
+
+    // ✅ NOUVEAU CHAMP : Matricule (optionnel, mais unique si renseigné)
+    @Column(name = "matricule", unique = true)
+    private String matricule;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "etat_compte", nullable = false)
@@ -69,7 +73,7 @@ public class Utilisateur {
 
     // CHAMP TRANSIENT POUR RECEVOIR LE MOT DE PASSE DU JSON
     @Transient
-    private String password; // Suppression de toute annotation Jackson ici
+    private String password;
 
     @OneToOne(mappedBy = "utilisateur", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference

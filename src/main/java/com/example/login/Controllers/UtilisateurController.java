@@ -24,24 +24,14 @@ public class UtilisateurController {
     public Utilisateur create(@RequestBody Map<String, Object> requestData,
                               @RequestParam String roleType) {
 
-        // CRÉATION MANUELLE de l'objet Utilisateur depuis la Map
         Utilisateur user = new Utilisateur();
 
-        // Récupération des données depuis la Map JSON
         user.setUsername((String) requestData.get("username"));
         user.setPassword((String) requestData.get("password"));
         user.setNom((String) requestData.get("nom"));
         user.setPrenom((String) requestData.get("prenom"));
         user.setEmail((String) requestData.get("email"));
-
-        // LOGS pour vérifier
-        System.out.println("=== DONNÉES REÇUES ===");
-        System.out.println("Username: " + user.getUsername());
-        System.out.println("Email: " + user.getEmail());
-        System.out.println("Nom: " + user.getNom());
-        System.out.println("Prenom: " + user.getPrenom());
-        System.out.println("Password: " + (user.getPassword() != null ? "FOURNI" : "NULL"));
-        System.out.println("=====================");
+        user.setMatricule((String) requestData.get("matricule"));
 
         return service.create(user, roleType);
     }
@@ -70,5 +60,56 @@ public class UtilisateurController {
 
         service.updatePassword(id, ancienMdp, nouveauMdp, confirmationMdp);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Utilisateur> updateUtilisateurDetails(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> requestData) {
+
+        String nom = (String) requestData.get("nom");
+        String prenom = (String) requestData.get("prenom");
+        String email = (String) requestData.get("email");
+        String username = (String) requestData.get("username");
+        String matricule = (String) requestData.get("matricule");
+        Boolean actif = (Boolean) requestData.get("actif");
+
+        try {
+            Utilisateur updatedUser = service.updateUtilisateurDetails(id, nom, prenom, email, username, matricule, actif);
+            return ResponseEntity.ok(updatedUser);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PutMapping("/{id}/admin-reset-password")
+    public ResponseEntity<Void> adminResetPassword(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> requestData) {
+
+        String nouveauMdp = requestData.get("nouveauMdp");
+
+        if (nouveauMdp == null || nouveauMdp.trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        try {
+            service.adminResetPassword(id, nouveauMdp);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUtilisateur(@PathVariable Long id) {
+        try {
+            service.deleteUtilisateur(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
