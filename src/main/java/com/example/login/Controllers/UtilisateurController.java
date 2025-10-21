@@ -84,22 +84,60 @@ public class UtilisateurController {
         }
     }
 
+    // ✅ MÉTHODE MODIFIÉE - Accepte maintenant un String
     @PutMapping("/{id}/admin-reset-password")
     public ResponseEntity<Void> adminResetPassword(
-            @PathVariable Long id,
+            @PathVariable String id,  // ✅ CHANGÉ: String au lieu de Long
             @RequestBody Map<String, String> requestData) {
 
         String nouveauMdp = requestData.get("nouveauMdp");
 
+        // Validation du mot de passe
         if (nouveauMdp == null || nouveauMdp.trim().isEmpty()) {
+            System.err.println("❌ Mot de passe vide ou null");
             return ResponseEntity.badRequest().build();
         }
 
         try {
-            service.adminResetPassword(id, nouveauMdp);
+            // ✅ Conversion et validation de l'ID
+            Long userId = Long.parseLong(id.trim());
+
+            if (userId <= 0) {
+                System.err.println("❌ ID invalide (doit être positif): " + userId);
+                return ResponseEntity.badRequest().build();
+            }
+
+            // Logs pour debugging
+            System.out.println("🔍 [Admin Reset Password]");
+            System.out.println("   📍 ID reçu (String): '" + id + "'");
+            System.out.println("   🔢 ID converti (Long): " + userId);
+            System.out.println("   🔑 Nouveau mot de passe: " + (nouveauMdp.length() > 0 ? "[***]" : "[VIDE]"));
+
+            // Appel au service
+            service.adminResetPassword(userId, nouveauMdp);
+
+            System.out.println("   ✅ Mot de passe réinitialisé avec succès pour l'ID: " + userId);
             return ResponseEntity.noContent().build();
+
+        } catch (NumberFormatException e) {
+            // ✅ Gestion: ID n'est pas un nombre valide
+            System.err.println("❌ [NumberFormatException] ID invalide (pas un nombre): '" + id + "'");
+            System.err.println("   Détail: " + e.getMessage());
+            return ResponseEntity.badRequest().build();
+
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            // ✅ Gestion: Utilisateur non trouvé ou autre erreur du service
+            System.err.println("❌ [RuntimeException] Erreur lors de la réinitialisation");
+            System.err.println("   ID recherché: " + id);
+            System.err.println("   Message: " + e.getMessage());
+            System.err.println("   Type: " + e.getClass().getSimpleName());
+
+            // Vérifier si c'est une erreur "utilisateur non trouvé"
+            if (e.getMessage() != null && e.getMessage().contains("non trouvé")) {
+                return ResponseEntity.notFound().build();
+            }
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 

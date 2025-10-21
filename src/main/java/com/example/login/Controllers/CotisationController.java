@@ -31,9 +31,9 @@ public class CotisationController {
 
     @Operation(summary = "Create a new cotisation", description = "Creates a new cotisation with the provided data")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Cotisation created successfully", 
+            @ApiResponse(responseCode = "201", description = "Cotisation created successfully",
                     content = @Content(schema = @Schema(implementation = Cotisation.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid input")
+            @ApiResponse(responseCode = "400", description = "Invalid input")
     })
     @PostMapping
     public ResponseEntity<Cotisation> createCotisation(@RequestBody Cotisation cotisation) {
@@ -43,14 +43,14 @@ public class CotisationController {
 
     @Operation(summary = "Update a cotisation", description = "Updates an existing cotisation with the provided ID")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Cotisation updated successfully"),
-        @ApiResponse(responseCode = "404", description = "Cotisation not found")
+            @ApiResponse(responseCode = "200", description = "Cotisation updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Cotisation not found")
     })
     @PutMapping("/{id}")
     public ResponseEntity<Cotisation> updateCotisation(
             @Parameter(description = "ID of the cotisation to update") @PathVariable String id,
             @RequestBody Cotisation cotisationDetails) {
-        
+
         Cotisation updated = cotisationService.updateCotisation(id, cotisationDetails);
         if (updated == null) {
             return ResponseEntity.notFound().build();
@@ -60,8 +60,8 @@ public class CotisationController {
 
     @Operation(summary = "Delete a cotisation", description = "Deletes a cotisation with the specified ID")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Cotisation deleted successfully"),
-        @ApiResponse(responseCode = "404", description = "Cotisation not found")
+            @ApiResponse(responseCode = "204", description = "Cotisation deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Cotisation not found")
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCotisation(
@@ -75,9 +75,9 @@ public class CotisationController {
 
     @Operation(summary = "Get cotisation by ID", description = "Returns a cotisation based on the ID")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Found the cotisation",
+            @ApiResponse(responseCode = "200", description = "Found the cotisation",
                     content = @Content(schema = @Schema(implementation = Cotisation.class))),
-        @ApiResponse(responseCode = "404", description = "Cotisation not found")
+            @ApiResponse(responseCode = "404", description = "Cotisation not found")
     })
     @GetMapping("/{id}")
     public ResponseEntity<Cotisation> getCotisationById(
@@ -91,7 +91,7 @@ public class CotisationController {
 
     @Operation(summary = "Get all cotisations", description = "Returns a list of all cotisations")
     @ApiResponse(responseCode = "200", description = "List of all cotisations retrieved",
-                content = @Content(schema = @Schema(implementation = Cotisation.class)))
+            content = @Content(schema = @Schema(implementation = Cotisation.class)))
     @GetMapping
     public ResponseEntity<List<Cotisation>> listCotisations() {
         List<Cotisation> cotisations = cotisationService.listCotisations();

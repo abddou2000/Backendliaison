@@ -17,10 +17,10 @@ public class TypeCotisation {
     @Column(name = "id_type_cotisation")
     private String idTypeCotisation;
 
-    @Column(name = "nom_type_cotisation") // renommé
+    @Column(name = "nom_type_cotisation")
     private String nomTypeCotisation;
 
-    @Column(name = "code_type_cotisation") // conservé
+    @Column(name = "code_type_cotisation")
     private String codeTypeCotisation;
 
     @Column(name = "description")
@@ -34,7 +34,7 @@ public class TypeCotisation {
     @Temporal(TemporalType.DATE)
     private Date dateFin;
 
-    @OneToMany(mappedBy = "typeCotisationRef")
+    @OneToMany(mappedBy = "typeCotisationRef", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private List<Cotisation> cotisations;
 
     // Default constructor

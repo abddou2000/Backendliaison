@@ -42,13 +42,14 @@ public class CotisationService {
     @Transactional
     public Cotisation updateCotisation(String id, Cotisation cotisationDetails) {
         Cotisation existingCotisation = getCotisationById(id);
-        
+
         if (existingCotisation == null) {
             return null;
         }
-        
-        existingCotisation.setTypeCotisation(cotisationDetails.getTypeCotisation());
+
         existingCotisation.setTypeCotisationRef(cotisationDetails.getTypeCotisationRef());
+        existingCotisation.setCodeCotisation(cotisationDetails.getCodeCotisation());
+        existingCotisation.setNomCotisation(cotisationDetails.getNomCotisation());
         existingCotisation.setTauxSalarial(cotisationDetails.getTauxSalarial());
         existingCotisation.setTauxPatronal(cotisationDetails.getTauxPatronal());
         existingCotisation.setPlafondSalarial(cotisationDetails.getPlafondSalarial());
@@ -56,7 +57,7 @@ public class CotisationService {
         existingCotisation.setDateDebut(cotisationDetails.getDateDebut());
         existingCotisation.setDateFin(cotisationDetails.getDateFin());
         existingCotisation.setDescription(cotisationDetails.getDescription());
-        
+
         return cotisationRepository.save(existingCotisation);
     }
 
