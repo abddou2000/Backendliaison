@@ -1,4 +1,3 @@
-// src/main/java/com/example/login/Models/BaremeIR.java
 package com.example.login.Models;
 
 import jakarta.persistence.*;
@@ -12,9 +11,13 @@ import java.util.Date;
 @Getter
 @Setter
 public class BaremeIR {
+
     @Id
     @Column(name = "id_tranche")
     private String idTranche;
+
+    @Column(name = "nom_tranche")
+    private String nomTranche;  // ✅ NOUVEAU CHAMP : "Tranche 1 - 0 à 30 000 DH"
 
     @Column(name = "minimum")
     private Double minimum;
@@ -39,10 +42,22 @@ public class BaremeIR {
     // Default constructor
     public BaremeIR() {}
 
-    // Constructor without static placeholders
-    public BaremeIR(String idTranche, Double minimum, Double maximum, Double tauxIr,
-                    Double montantDeduction, Date dateDebut, Date dateFin) {
+    // Constructor with essential fields
+    public BaremeIR(String idTranche, String nomTranche, Double minimum, Double maximum,
+                    Double tauxIr, Double montantDeduction) {
         this.idTranche = idTranche;
+        this.nomTranche = nomTranche;
+        this.minimum = minimum;
+        this.maximum = maximum;
+        this.tauxIr = tauxIr;
+        this.montantDeduction = montantDeduction;
+    }
+
+    // Constructor with all fields
+    public BaremeIR(String idTranche, String nomTranche, Double minimum, Double maximum,
+                    Double tauxIr, Double montantDeduction, Date dateDebut, Date dateFin) {
+        this.idTranche = idTranche;
+        this.nomTranche = nomTranche;
         this.minimum = minimum;
         this.maximum = maximum;
         this.tauxIr = tauxIr;
@@ -55,6 +70,7 @@ public class BaremeIR {
     public String toString() {
         return "BaremeIR{" +
                 "idTranche='" + idTranche + '\'' +
+                ", nomTranche='" + nomTranche + '\'' +
                 ", minimum=" + minimum +
                 ", maximum=" + maximum +
                 ", tauxIr=" + tauxIr +

@@ -1,6 +1,6 @@
-// src/main/java/com/example/login/Models/TypeAbsence.java
 package com.example.login.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,6 +25,9 @@ public class TypeAbsence {
     @Column(name = "code_absence")
     private String codeAbsence;
 
+    @Column(name = "decompte")
+    private String decompte;  // ✅ NOUVEAU CHAMP : "Jours", "Heures", "Demi-journées", etc.
+
     @Column(name = "justificatif_requis")
     private Boolean justificatifRequis;
 
@@ -35,7 +38,7 @@ public class TypeAbsence {
     private Boolean impactSoldeConge;
 
     @Column(name = "ess_mss")
-    private Boolean essMss;  // ← Nouveau champ: peut être demandé par le salarié
+    private Boolean essMss;
 
     @Column(name = "date_debut")
     @Temporal(TemporalType.DATE)
@@ -45,9 +48,12 @@ public class TypeAbsence {
     @Temporal(TemporalType.DATE)
     private Date dateFin;
 
-    @OneToMany(mappedBy = "typeAbsence", cascade = CascadeType.ALL)
+    // ✅ CORRECTION : CascadeType.ALL → PERSIST, MERGE + @JsonIgnore pour éviter boucle infinie
+    @OneToMany(mappedBy = "typeAbsence", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<Absence> absences = new HashSet<>();
 
+    // Default constructor
     public TypeAbsence() {
         this.justificatifRequis = false;
         this.absenceRemuneree = false;
@@ -55,14 +61,17 @@ public class TypeAbsence {
         this.essMss = false;
     }
 
-    public TypeAbsence(String idTypeAbsence, String nomAbsence, String codeAbsence) {
+    // Constructor with essential fields
+    public TypeAbsence(String idTypeAbsence, String nomAbsence, String codeAbsence, String decompte) {
         this();
         this.idTypeAbsence = idTypeAbsence;
         this.nomAbsence = nomAbsence;
         this.codeAbsence = codeAbsence;
+        this.decompte = decompte;
     }
 
-    public TypeAbsence(String idTypeAbsence, String nomAbsence, String codeAbsence,
+    // Constructor with all fields
+    public TypeAbsence(String idTypeAbsence, String nomAbsence, String codeAbsence, String decompte,
                        Boolean justificatifRequis, Boolean absenceRemuneree,
                        Boolean impactSoldeConge, Boolean essMss,
                        Date dateDebut, Date dateFin) {
@@ -70,6 +79,7 @@ public class TypeAbsence {
         this.idTypeAbsence = idTypeAbsence;
         this.nomAbsence = nomAbsence;
         this.codeAbsence = codeAbsence;
+        this.decompte = decompte;
         this.justificatifRequis = justificatifRequis;
         this.absenceRemuneree = absenceRemuneree;
         this.impactSoldeConge = impactSoldeConge;
@@ -80,5 +90,32 @@ public class TypeAbsence {
 
     public String getId() {
         return this.idTypeAbsence;
+    }
+
+    @Override
+    public String toString() {
+        return "TypeAbsence{" +
+                "idTypeAbsence='" + idTypeAbsence + '\'' +
+                ", nomAbsence='" + nomAbsence + '\'' +
+                ", codeAbsence='" + codeAbsence + '\'' +
+                ", decompte='" + decompte + '\'' +
+                ", justificatifRequis=" + justificatifRequis +
+                ", absenceRemuneree=" + absenceRemuneree +
+                ", impactSoldeConge=" + impactSoldeConge +
+                ", essMss=" + essMss +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof TypeAbsence)) return false;
+        TypeAbsence that = (TypeAbsence) o;
+        return idTypeAbsence != null && idTypeAbsence.equals(that.idTypeAbsence);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

@@ -16,15 +16,15 @@ public class Absence {
     @Column(name = "id_absence")
     private String idAbsence;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_user")
     private EmployeSimple employe;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_type_absence")
     private TypeAbsence typeAbsence;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_periode")
     private PeriodePaie periodePaie;
 
@@ -65,7 +65,6 @@ public class Absence {
     public String toString() {
         return "Absence{" +
                 "idAbsence='" + idAbsence + '\'' +
-                // LA SEULE CORRECTION EST ICI :
                 ", employe=" + (employe != null ? employe.getId() : "null") +
                 ", typeAbsence=" + (typeAbsence != null ? typeAbsence.getIdTypeAbsence() : "null") +
                 ", dateDebut=" + dateDebut +

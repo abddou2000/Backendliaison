@@ -13,7 +13,8 @@ import java.util.Set;
 
 @Entity
 @Table(name = "profil_salarial")
-@Getter @Setter
+@Getter
+@Setter
 public class ProfilSalarial {
 
     @Id
@@ -26,11 +27,10 @@ public class ProfilSalarial {
     @Column(name = "nom_profil")
     private String nomProfil;
 
-    // NOUVEAU CHAMP - CATEGORIE
     @Column(name = "categorie")
     private String categorie;
 
-    // NOUVEAU CHAMP - PRIMES ASSOCIEES
+    // NOTE: Ce champ pourrait être calculé dynamiquement via getTotalPrimes()
     @Column(name = "primes_associees", precision = 10, scale = 2)
     private BigDecimal primesAssociees;
 
@@ -51,7 +51,8 @@ public class ProfilSalarial {
     @Column(name = "salaire_base", precision = 10, scale = 2)
     private BigDecimal salaireBase;
 
-    @OneToMany(mappedBy = "profilSalarial", cascade = CascadeType.ALL)
+    // ✅ CORRECTION : CascadeType.ALL → PERSIST, MERGE + FetchType.LAZY explicite
+    @OneToMany(mappedBy = "profilSalarial", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
     @JsonIgnore
     private Set<PrimeIndemniteRetenue> primes = new HashSet<>();
 
@@ -63,8 +64,10 @@ public class ProfilSalarial {
     @Column(name = "date_fin")
     private Date dateFin;
 
+    // Default constructor
     public ProfilSalarial() {}
 
+    // Constructor with essential fields
     public ProfilSalarial(String idProfil, String codeProfil, String nomProfil, BigDecimal salaireBase) {
         this.idProfil = idProfil;
         this.codeProfil = codeProfil;
@@ -72,6 +75,7 @@ public class ProfilSalarial {
         this.salaireBase = salaireBase;
     }
 
+    // Constructor with all fields
     public ProfilSalarial(String idProfil, String codeProfil, String nomProfil,
                           CategorieSalariale categorieSalariale, StatutSalarial statutSalarial,
                           String fonction, BigDecimal salaireBase, Date dateDebut, Date dateFin) {
@@ -84,6 +88,18 @@ public class ProfilSalarial {
         this.salaireBase = salaireBase;
         this.dateDebut = dateDebut;
         this.dateFin = dateFin;
+    }
+
+    // ✅ BONUS : Méthode pour calculer le total des primes dynamiquement
+    @Transient
+    public BigDecimal getTotalPrimes() {
+        if (primes == null || primes.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+        return primes.stream()
+                .filter(p -> p.getValeurUnitaire() != null)
+                .map(PrimeIndemniteRetenue::getValeurUnitaire)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     @Override

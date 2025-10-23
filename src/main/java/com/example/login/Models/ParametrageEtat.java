@@ -6,7 +6,8 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "parametrage_etat")
-@Getter @Setter
+@Getter
+@Setter
 public class ParametrageEtat {
 
     @Id
@@ -14,10 +15,11 @@ public class ParametrageEtat {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "nom_formulaire", nullable = true , length = 10)
+    @Column(name = "nom_formulaire", nullable = true, length = 10)
     private String nomFormulaire;
 
-    @Column(name = "nom_champ", nullable = false, length = 100)
+    // ✅ CORRECTION : nullable = false → nullable = true
+    @Column(name = "nom_champ", nullable = true, length = 100)
     private String nomChamp;
 
     @Column(name = "visibilite", nullable = false)
@@ -29,12 +31,24 @@ public class ParametrageEtat {
     @Column(name = "type_rubrique", length = 50)
     private String typeRubrique;
 
+    // Default constructor
     public ParametrageEtat() {}
 
+    // Constructor with all fields
     public ParametrageEtat(String nomFormulaire, String nomChamp, Boolean visibilite,
                            String rubrique, String typeRubrique) {
         this.nomFormulaire = nomFormulaire;
         this.nomChamp = nomChamp;
+        this.visibilite = visibilite;
+        this.rubrique = rubrique;
+        this.typeRubrique = typeRubrique;
+    }
+
+    // ✅ NOUVEAU : Constructor sans nomChamp (pour entrées basées sur rubrique uniquement)
+    public ParametrageEtat(String nomFormulaire, Boolean visibilite,
+                           String rubrique, String typeRubrique) {
+        this.nomFormulaire = nomFormulaire;
+        this.nomChamp = null;  // nomChamp est null
         this.visibilite = visibilite;
         this.rubrique = rubrique;
         this.typeRubrique = typeRubrique;
@@ -50,5 +64,18 @@ public class ParametrageEtat {
                 ", rubrique='" + rubrique + '\'' +
                 ", typeRubrique='" + typeRubrique + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ParametrageEtat)) return false;
+        ParametrageEtat that = (ParametrageEtat) o;
+        return id != null && id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }
