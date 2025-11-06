@@ -26,6 +26,11 @@ public class Administrateur {
     @Column(name = "niveau")
     private String niveau;
 
+    // ✅ NOUVELLE MÉTHODE : Obtenir le username
+    public String getUsername() {
+        return utilisateur != null ? utilisateur.getUsername() : null;
+    }
+
     // ✅ Méthode utilitaire pour obtenir le matricule via l'utilisateur
     public String getMatricule() {
         return utilisateur != null ? utilisateur.getMatricule() : null;

@@ -1,172 +1,145 @@
 package com.example.login.Controllers;
 
-import com.example.login.DTO.SauvegardeDTO;
-import com.example.login.DTO.SauvegardeStatsDTO;
 import com.example.login.Models.Administrateur;
 import com.example.login.Models.SauvegardeBDD;
 import com.example.login.Repositories.AdministrateurRepository;
-import com.example.login.Repositories.SauvegardeBDDRepository; // ✅ CORRIGÉ : Nom du repository
+import com.example.login.Services.SauvegardeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
+/**
+ * Contrôleur REST pour gérer les opérations liées aux sauvegardes de la base de données.
+ * C'est le point d'entrée pour toutes les requêtes du frontend.
+ */
 @RestController
 @RequestMapping("/api/sauvegardes")
-@CrossOrigin(origins = "*")
-public class SauvegardeBDDController {
-
-    @Autowired
-    private SauvegardeBDDRepository sauvegardeRepository; // ✅ CORRIGÉ : Nom du repository
+public class SauvegardeController {
 
     @Autowired
     private SauvegardeService sauvegardeService;
 
     @Autowired
-    private AdministrateurRepository administrateurRepository;
+    private AdministrateurRepository adminRepository;
 
-    private Administrateur getAuthenticatedAdmin() {
-        try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication != null && authentication.isAuthenticated()) {
-                String email = authentication.getName();
-                return administrateurRepository.findByEmail(email).orElse(null);
-            }
-        } catch (Exception e) {
-            System.err.println("Erreur lors de la récupération de l'admin: " + e.getMessage());
-        }
-        return null;
-    }
-
+    /**
+     * Endpoint pour lister toutes les sauvegardes.
+     * Correspond à `api.get('')`.
+     */
     @GetMapping
-    public ResponseEntity<List<SauvegardeDTO>> getAllSauvegardes() {
-        try {
-            List<SauvegardeBDD> sauvegardes = sauvegardeRepository.findAllByOrderByDateSauvegardeDesc();
-            List<SauvegardeDTO> dtos = sauvegardes.stream()
-                    .map(this::convertToDTO)
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(dtos);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
-        }
+    public ResponseEntity<List<SauvegardeBDD>> listerSauvegardes() {
+        return ResponseEntity.ok(sauvegardeService.findAll());
     }
 
+    /**
+     * Endpoint pour obtenir les statistiques du tableau de bord.
+     * Correspond à `api.get('/stats')`.
+     */
     @GetMapping("/stats")
-    public ResponseEntity<SauvegardeStatsDTO> getStats() {
-        try {
-            long totalBackups = sauvegardeRepository.count();
-
-            List<SauvegardeBDD> sauvegardes = sauvegardeRepository.findAll();
-            double totalSizeMB = sauvegardes.stream()
-                    .filter(s -> s.getTailleFichier() != null)
-                    .mapToLong(SauvegardeBDD::getTailleFichier)
-                    .sum() / (1024.0 * 1024.0);
-            String totalSize = String.format("%.1f MB", totalSizeMB);
-
-            Optional<SauvegardeBDD> derniere = Optional.ofNullable(sauvegardeRepository.findTopByOrderByDateSauvegardeDesc());
-            String lastBackup = derniere.map(s -> {
-                long minutes = ChronoUnit.MINUTES.between(s.getDateSauvegarde(), LocalDateTime.now());
-                if (minutes < 60) return "Il y a " + minutes + " min";
-                long hours = minutes / 60;
-                if (hours < 24) return "Il y a " + hours + "h";
-                long days = hours / 24;
-                return "Il y a " + days + " jour(s)";
-            }).orElse("Jamais");
-
-            SauvegardeStatsDTO stats = new SauvegardeStatsDTO(totalBackups, totalSize, lastBackup, true);
-            return ResponseEntity.ok(stats);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
-        }
+    public ResponseEntity<Map<String, Object>> getStats() {
+        return ResponseEntity.ok(sauvegardeService.getDashboardStats());
     }
 
+    /**
+     * Endpoint pour rechercher des sauvegardes.
+     * Correspond à `api.get('/search', ...)`.
+     */
+    @GetMapping("/search")
+    public ResponseEntity<List<SauvegardeBDD>> rechercherSauvegardes(
+            @RequestParam(name = "query", required = false, defaultValue = "") String query) {
+        if (query.isBlank()) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+        return ResponseEntity.ok(sauvegardeService.search(query.replace("-", "")));
+    }
+
+    /**
+     * Endpoint pour lancer une sauvegarde manuelle.
+     * Correspond à `api.post('/lancer')`.
+     */
     @PostMapping("/lancer")
-    public ResponseEntity<?> lancerSauvegarde() {
+    public ResponseEntity<SauvegardeBDD> lancerSauvegardeManuelle(
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         try {
-            Administrateur admin = getAuthenticatedAdmin();
-            SauvegardeBDD sauvegarde = sauvegardeService.lancerSauvegardeManuelle(admin);
-            if (sauvegarde != null) {
-                SauvegardeDTO dto = convertToDTO(sauvegarde);
-                return ResponseEntity.ok(dto);
-            } else {
-                return ResponseEntity.status(500).body(Map.of("message", "Erreur lors de la création de la sauvegarde"));
+            // Récupérer un administrateur depuis la base de données
+            Administrateur admin = adminRepository.findAll().stream()
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Aucun administrateur trouvé"));
+
+            // Lancer la sauvegarde
+            SauvegardeBDD nouvelleSauvegarde = sauvegardeService.lancerSauvegardeManuelle(admin);
+
+            // Vérifier si le service retourne null (sauvegarde asynchrone)
+            if (nouvelleSauvegarde == null) {
+                return ResponseEntity.accepted().build();
             }
+
+            return ResponseEntity.accepted().body(nouvelleSauvegarde);
+
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body(Map.of("message", "Erreur: " + e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    @PostMapping("/restaurer/{id}")
-    public ResponseEntity<?> restaurerSauvegarde(@PathVariable String id) {
+    /**
+     * Endpoint pour supprimer plusieurs sauvegardes en une seule requête.
+     * Correspond à `api.delete('/supprimer', ...)`.
+     */
+    @DeleteMapping("/supprimer")
+    public ResponseEntity<Void> supprimerSauvegardesEnMasse(
+            @RequestBody Map<String, List<String>> payload) {
+        List<String> ids = payload.get("ids");
+        if (ids != null && !ids.isEmpty()) {
+            sauvegardeService.deleteByIds(ids);
+        }
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Endpoint pour restaurer une sauvegarde.
+     * Correspondra à la fonction handleRestore(id) du frontend.
+     */
+    @PostMapping("/{id}/restaurer")
+    public ResponseEntity<Map<String, String>> restaurerSauvegarde(@PathVariable String id) {
         try {
             sauvegardeService.restaurerSauvegarde(id);
-            return ResponseEntity.ok(Map.of("message", "Sauvegarde restaurée avec succès", "backupId", id));
+            return ResponseEntity.ok(Map.of("message", "La restauration a démarré avec succès."));
         } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500).body(Map.of("message", "Erreur lors de la restauration: " + e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Échec de la restauration : " + e.getMessage()));
         }
     }
 
-    @DeleteMapping("/supprimer")
-    public ResponseEntity<Map<String, Object>> supprimerSauvegardes(@RequestBody Map<String, List<String>> request) {
+    /**
+     * Endpoint pour télécharger le fichier d'une sauvegarde.
+     * Correspondra à la fonction de téléchargement du frontend.
+     */
+    @GetMapping("/{id}/telecharger")
+    public ResponseEntity<Resource> telechargerFichierSauvegarde(@PathVariable String id) {
         try {
-            List<String> ids = request.get("ids");
-            if (ids == null || ids.isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("message", "Aucun ID fourni"));
-            }
-            List<SauvegardeBDD> sauvegardes = sauvegardeRepository.findAllById(ids);
-            sauvegardeService.supprimerFichiersSauvegardes(sauvegardes);
-            sauvegardeRepository.deleteAllById(ids);
-            return ResponseEntity.ok(Map.of("message", ids.size() + " sauvegarde(s) supprimée(s) avec succès", "count", ids.size()));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500).body(Map.of("message", "Erreur lors de la suppression: " + e.getMessage()));
-        }
-    }
+            Resource resource = sauvegardeService.chargerFichierEnTantQueResource(id);
+            String headerValue = "attachment; filename=\"" + resource.getFilename() + "\"";
 
-    @DeleteMapping("/nettoyer")
-    public ResponseEntity<Map<String, Object>> nettoyerSauvegardes(@RequestParam(defaultValue = "30") int joursConservation) {
-        try {
-            int count = sauvegardeService.nettoyerAnciennesSauvegardes(joursConservation);
-            return ResponseEntity.ok(Map.of("message", count + " sauvegarde(s) supprimée(s)", "count", count));
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, headerValue)
+                    .body(resource);
         } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500).body(Map.of("message", "Erreur lors du nettoyage: " + e.getMessage()));
+            return ResponseEntity.notFound().build();
         }
-    }
-
-    @GetMapping("/search")
-    public ResponseEntity<List<SauvegardeDTO>> rechercherSauvegardes(@RequestParam String query) {
-        try {
-            // Utilise la nouvelle méthode que nous avons ajoutée au repository
-            List<SauvegardeBDD> resultats = sauvegardeRepository.searchSauvegardes(query);
-            List<SauvegardeDTO> dtos = resultats.stream()
-                    .map(this::convertToDTO)
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(dtos);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-
-    private SauvegardeDTO convertToDTO(SauvegardeBDD sauvegarde) {
-        return new SauvegardeDTO(
-                sauvegarde.getId(),
-                sauvegarde.getDate(),
-                sauvegarde.getTime(),
-                sauvegarde.getSize(),
-                sauvegarde.getCreatedBy().name(),
-                sauvegarde.getStatus().name()
-        );
     }
 }

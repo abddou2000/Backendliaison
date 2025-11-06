@@ -4,6 +4,7 @@ import com.example.login.Models.ActivityLog;
 import com.example.login.Models.ActivityLog.ActivityStatus;
 import com.example.login.Models.ActivityLog.ActivityType;
 import com.example.login.Repositories.ActivityLogRepository;
+import com.example.login.Specifications.ActivityLogSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -41,7 +42,7 @@ public class ActivityLogService {
         return repository.findById(id);
     }
 
-    // Recherche avec filtres avancés
+    // Recherche avec filtres avancés (utilise Specification pour PostgreSQL)
     public Page<ActivityLog> searchWithFilters(
             String search,
             String typeStr,
@@ -50,28 +51,44 @@ public class ActivityLogService {
             int page,
             int size
     ) {
-        ActivityType type = typeStr != null && !typeStr.equals("tous")
-                ? ActivityType.valueOf(typeStr.toUpperCase())
-                : null;
+        // Conversion des types
+        ActivityType type = null;
+        if (typeStr != null && !typeStr.trim().isEmpty() && !typeStr.equalsIgnoreCase("tous")) {
+            try {
+                type = ActivityType.valueOf(typeStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // Type invalide, on ignore
+            }
+        }
 
-        ActivityStatus status = statusStr != null && !statusStr.equals("tous")
-                ? ActivityStatus.valueOf(statusStr.toUpperCase())
-                : null;
+        ActivityStatus status = null;
+        if (statusStr != null && !statusStr.trim().isEmpty() && !statusStr.equalsIgnoreCase("tous")) {
+            try {
+                status = ActivityStatus.valueOf(statusStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // Statut invalide, on ignore
+            }
+        }
 
         LocalDateTime startDate = calculateStartDate(dateFilter);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "timestamp"));
-        return repository.findWithFilters(search, type, status, startDate, pageable);
+
+        // Utilisation de Specification pour éviter les problèmes PostgreSQL
+        return repository.findAll(
+                ActivityLogSpecification.withFilters(search, type, status, startDate),
+                pageable
+        );
     }
 
     // Calculer la date de début selon le filtre
     private LocalDateTime calculateStartDate(String dateFilter) {
-        if (dateFilter == null || dateFilter.equals("all")) {
+        if (dateFilter == null || dateFilter.trim().isEmpty() || dateFilter.equalsIgnoreCase("all")) {
             return null;
         }
 
         LocalDateTime now = LocalDateTime.now();
-        switch (dateFilter) {
+        switch (dateFilter.toLowerCase()) {
             case "today":
                 return now.toLocalDate().atStartOfDay();
             case "week":
@@ -111,5 +128,19 @@ public class ActivityLogService {
     // Récupérer les 50 dernières activités
     public List<ActivityLog> getRecent() {
         return repository.findTop50ByOrderByTimestampDesc();
+    }
+
+    // ✅ NOUVELLE MÉTHODE pour l'export (SANS pagination)
+    public List<ActivityLog> getAllForExport(
+            String search,
+            ActivityType type,
+            ActivityStatus status,
+            LocalDateTime startDate
+    ) {
+        // Utiliser Specification sans pagination
+        return repository.findAll(
+                ActivityLogSpecification.withFilters(search, type, status, startDate),
+                Sort.by(Sort.Direction.DESC, "timestamp")
+        );
     }
 }

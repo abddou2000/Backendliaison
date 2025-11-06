@@ -1,8 +1,11 @@
 package com.example.login.Controllers;
 
+import com.example.login.Models.ActivityLog;
 import com.example.login.Models.Utilisateur;
 import com.example.login.Repositories.UtilisateurRepository;
 import com.example.login.Security.JwtUtil;
+import com.example.login.Services.ActivityLogService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +33,12 @@ public class AuthController {
     private final UserDetailsService userDetailsService;
     private final JwtUtil jwtUtil;
     private final UtilisateurRepository utilisateurRepository;
+
+    @Autowired
+    private ActivityLogService activityLogService; // ✅ Ajout du service de log
+
+    @Autowired(required = false)
+    private HttpServletRequest request; // ✅ Pour récupérer l'IP et le User-Agent
 
     @Autowired
     public AuthController(
@@ -85,6 +94,15 @@ public class AuthController {
                 body.put("user",  userInfo);
                 body.put("message", "Connexion réussie");
 
+                // ✅ Logger la connexion réussie
+                logActivity(
+                        user,
+                        "Connexion à l'application",
+                        ActivityLog.ActivityType.CONNEXION,
+                        ActivityLog.ActivityStatus.SUCCESS,
+                        null
+                );
+
                 System.out.println("Login successful for " + user.getRole().getType() + " user");
                 return ResponseEntity.ok(body);
             }
@@ -98,6 +116,15 @@ public class AuthController {
                     utilisateurRepository.save(user);
                 }
 
+                // ✅ Logger la tentative de connexion avec mot de passe expiré
+                logActivity(
+                        user,
+                        "Tentative de connexion avec mot de passe expiré",
+                        ActivityLog.ActivityType.CONNEXION,
+                        ActivityLog.ActivityStatus.WARNING,
+                        null
+                );
+
                 Map<String, Object> response = new HashMap<>();
                 response.put("action", "CHANGER_MDP");
                 response.put("message", "Votre mot de passe doit être changé.");
@@ -107,6 +134,15 @@ public class AuthController {
 
             // Gestion des comptes bloqués
             if (user.getEtatCompte() == Utilisateur.EtatCompte.BLOQUE) {
+                // ✅ Logger la tentative de connexion avec compte bloqué
+                logActivity(
+                        user,
+                        "Tentative de connexion sur compte bloqué",
+                        ActivityLog.ActivityType.CONNEXION,
+                        ActivityLog.ActivityStatus.ERROR,
+                        null
+                );
+
                 return ResponseEntity.status(403).body("Votre compte est bloqué. Veuillez contacter un administrateur.");
             }
 
@@ -115,6 +151,31 @@ public class AuthController {
 
         } catch (BadCredentialsException ex) {
             System.err.println("Bad credentials for username: " + request.getUsername());
+
+            // ✅ Logger la tentative de connexion échouée (mauvais mot de passe)
+            try {
+                Utilisateur user = utilisateurRepository.findByUsername(request.getUsername()).orElse(null);
+                if (user != null) {
+                    logActivity(
+                            user,
+                            "Tentative de connexion échouée - Mot de passe incorrect",
+                            ActivityLog.ActivityType.CONNEXION,
+                            ActivityLog.ActivityStatus.ERROR,
+                            null
+                    );
+                } else {
+                    // Si l'utilisateur n'existe pas, on log avec des infos génériques
+                    logActivityWithoutUser(
+                            request.getUsername(),
+                            "Tentative de connexion échouée - Utilisateur inexistant",
+                            ActivityLog.ActivityType.CONNEXION,
+                            ActivityLog.ActivityStatus.ERROR
+                    );
+                }
+            } catch (Exception logEx) {
+                System.err.println("Erreur lors du logging: " + logEx.getMessage());
+            }
+
             return ResponseEntity.status(401).body("Nom d'utilisateur ou mot de passe invalide.");
         } catch (AuthenticationException ex) {
             System.err.println("Authentication error: " + ex.getMessage());
@@ -125,6 +186,80 @@ public class AuthController {
             ex.printStackTrace();
             return ResponseEntity.status(500).body("Erreur inattendue : " + ex.getMessage());
         }
+    }
+
+    // ✅ MÉTHODE POUR LOGGER LES ACTIVITÉS DE CONNEXION
+    private void logActivity(Utilisateur user, String action, ActivityLog.ActivityType type, ActivityLog.ActivityStatus status, String target) {
+        try {
+            ActivityLog log = new ActivityLog();
+            log.setTimestamp(LocalDateTime.now());
+            log.setUserId(user.getId());
+            log.setUserName(user.getPrenom() + " " + user.getNom());
+            log.setUserEmail(user.getEmail());
+            log.setAction(action);
+            log.setType(type);
+            log.setStatus(status);
+            log.setTarget(target);
+
+            // Récupérer l'adresse IP
+            log.setIpAddress(getClientIpAddress());
+
+            // Récupérer le User-Agent
+            if (this.request != null) {
+                log.setUserAgent(this.request.getHeader("User-Agent"));
+            }
+
+            log.setDetails(action);
+
+            activityLogService.create(log);
+        } catch (Exception e) {
+            System.err.println("⚠️ Erreur lors du logging de l'activité: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // ✅ MÉTHODE POUR LOGGER SANS UTILISATEUR (tentatives avec username inexistant)
+    private void logActivityWithoutUser(String username, String action, ActivityLog.ActivityType type, ActivityLog.ActivityStatus status) {
+        try {
+            ActivityLog log = new ActivityLog();
+            log.setTimestamp(LocalDateTime.now());
+            log.setUserId(0L); // ID 0 pour utilisateur inexistant
+            log.setUserName("Utilisateur inconnu");
+            log.setUserEmail(username); // On met le username dans l'email pour traçabilité
+            log.setAction(action);
+            log.setType(type);
+            log.setStatus(status);
+            log.setTarget(username);
+
+            // Récupérer l'adresse IP
+            log.setIpAddress(getClientIpAddress());
+
+            // Récupérer le User-Agent
+            if (this.request != null) {
+                log.setUserAgent(this.request.getHeader("User-Agent"));
+            }
+
+            log.setDetails(action + " - Username: " + username);
+
+            activityLogService.create(log);
+        } catch (Exception e) {
+            System.err.println("⚠️ Erreur lors du logging de l'activité: " + e.getMessage());
+        }
+    }
+
+    // Récupérer l'adresse IP du client
+    private String getClientIpAddress() {
+        if (this.request == null) {
+            return "0.0.0.0";
+        }
+
+        String xForwardedFor = this.request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+
+        String remoteAddr = this.request.getRemoteAddr();
+        return remoteAddr != null ? remoteAddr : "0.0.0.0";
     }
 
     @Data

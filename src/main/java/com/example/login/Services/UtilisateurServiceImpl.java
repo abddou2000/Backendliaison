@@ -1,8 +1,12 @@
 package com.example.login.Services;
 
+import com.example.login.Models.ActivityLog;
 import com.example.login.Models.Role;
 import com.example.login.Models.Utilisateur;
 import com.example.login.Repositories.UtilisateurRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +23,12 @@ public class UtilisateurServiceImpl implements UtilisateurService {
     private final RoleService roleService;
     private final PasswordEncoder encoder;
     private final EmailService emailService;
+
+    @Autowired
+    private ActivityLogService activityLogService; // ✅ Injection du service de log
+
+    @Autowired(required = false)
+    private HttpServletRequest request; // ✅ Pour récupérer l'IP et le User-Agent
 
     public UtilisateurServiceImpl(UtilisateurRepository userRepo,
                                   RoleService roleService,
@@ -70,6 +80,14 @@ public class UtilisateurServiceImpl implements UtilisateurService {
 
         Utilisateur savedUser = userRepo.save(user);
 
+        // ✅ Logger l'activité de création
+        logActivity(
+                "Création d'un utilisateur",
+                ActivityLog.ActivityType.CREATION,
+                ActivityLog.ActivityStatus.SUCCESS,
+                user.getUsername() + " (" + user.getEmail() + ")"
+        );
+
         emailService.envoyerEmailSimple(user.getEmail(), "Votre nom d'utilisateur pour [Nom App]",
                 "Bonjour " + user.getPrenom() + ",\n\nVotre nom d'utilisateur est : " + user.getUsername());
 
@@ -99,6 +117,14 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         user.setEtatCompte(Utilisateur.EtatCompte.ACTIF);
         user.setDateModification(LocalDateTime.now());
         userRepo.save(user);
+
+        // ✅ Logger l'activité de modification du mot de passe
+        logActivity(
+                "Modification du mot de passe",
+                ActivityLog.ActivityType.MODIFICATION,
+                ActivityLog.ActivityStatus.SUCCESS,
+                user.getUsername()
+        );
     }
 
     @Override
@@ -116,6 +142,14 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         String lien = "http://localhost:4200/reset-password?token=" + token;
         emailService.envoyerEmailSimple(email, "Réinitialisation de votre mot de passe",
                 "Cliquez sur ce lien pour réinitialiser votre mot de passe : " + lien);
+
+        // ✅ Logger l'activité de demande de réinitialisation
+        logActivity(
+                "Demande de réinitialisation de mot de passe",
+                ActivityLog.ActivityType.CONFIGURATION,
+                ActivityLog.ActivityStatus.SUCCESS,
+                user.getUsername() + " (" + email + ")"
+        );
     }
 
     @Override
@@ -144,6 +178,14 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         user.setDateExpirationToken(null);
         user.setDateModification(LocalDateTime.now());
         userRepo.save(user);
+
+        // ✅ Logger l'activité de réinitialisation
+        logActivity(
+                "Réinitialisation du mot de passe",
+                ActivityLog.ActivityType.MODIFICATION,
+                ActivityLog.ActivityStatus.SUCCESS,
+                user.getUsername()
+        );
     }
 
     @Override
@@ -157,11 +199,15 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         Utilisateur existingUser = userRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'ID: " + id));
 
+        String changementsEffectues = "";
+
         if (nom != null && !nom.trim().isEmpty() && !nom.trim().equals(existingUser.getNom())) {
             existingUser.setNom(nom.trim());
+            changementsEffectues += "nom, ";
         }
         if (prenom != null && !prenom.trim().isEmpty() && !prenom.trim().equals(existingUser.getPrenom())) {
             existingUser.setPrenom(prenom.trim());
+            changementsEffectues += "prénom, ";
         }
         if (email != null && !email.trim().isEmpty() && !email.trim().equals(existingUser.getEmail())) {
             if (userRepo.findByEmail(email.trim()).isPresent() &&
@@ -169,6 +215,7 @@ public class UtilisateurServiceImpl implements UtilisateurService {
                 throw new IllegalArgumentException("L'email '" + email + "' est déjà utilisé par un autre utilisateur.");
             }
             existingUser.setEmail(email.trim());
+            changementsEffectues += "email, ";
         }
         if (username != null && !username.trim().isEmpty() && !username.trim().equals(existingUser.getUsername())) {
             if (userRepo.findByUsername(username.trim()).isPresent() &&
@@ -176,6 +223,7 @@ public class UtilisateurServiceImpl implements UtilisateurService {
                 throw new IllegalArgumentException("Le nom d'utilisateur '" + username + "' est déjà pris.");
             }
             existingUser.setUsername(username.trim());
+            changementsEffectues += "username, ";
         }
         if (matricule != null && !matricule.trim().isEmpty() && !matricule.trim().equals(existingUser.getMatricule())) {
             if (userRepo.findByMatricule(matricule.trim()).isPresent() &&
@@ -183,20 +231,37 @@ public class UtilisateurServiceImpl implements UtilisateurService {
                 throw new IllegalArgumentException("Le matricule '" + matricule + "' est déjà utilisé par un autre utilisateur.");
             }
             existingUser.setMatricule(matricule.trim());
+            changementsEffectues += "matricule, ";
         } else if (matricule != null && matricule.trim().isEmpty() && existingUser.getMatricule() != null) {
             existingUser.setMatricule(null);
+            changementsEffectues += "matricule supprimé, ";
         }
 
         if (actif != null) {
             if (actif) {
                 existingUser.setEtatCompte(Utilisateur.EtatCompte.ACTIF);
+                changementsEffectues += "compte activé, ";
             } else {
                 existingUser.setEtatCompte(Utilisateur.EtatCompte.BLOQUE);
+                changementsEffectues += "compte bloqué, ";
             }
         }
 
         existingUser.setDateModification(LocalDateTime.now());
-        return userRepo.save(existingUser);
+        Utilisateur updatedUser = userRepo.save(existingUser);
+
+        // ✅ Logger l'activité de modification
+        if (!changementsEffectues.isEmpty()) {
+            changementsEffectues = changementsEffectues.substring(0, changementsEffectues.length() - 2); // Enlever la dernière virgule
+            logActivity(
+                    "Modification des informations d'un utilisateur (" + changementsEffectues + ")",
+                    ActivityLog.ActivityType.MODIFICATION,
+                    ActivityLog.ActivityStatus.SUCCESS,
+                    existingUser.getUsername()
+            );
+        }
+
+        return updatedUser;
     }
 
     @Override
@@ -224,6 +289,14 @@ public class UtilisateurServiceImpl implements UtilisateurService {
                         "Cordialement,\n" +
                         "L'équipe [Nom App]"
         );
+
+        // ✅ Logger l'activité de réinitialisation par admin
+        logActivity(
+                "Réinitialisation du mot de passe par l'administrateur",
+                ActivityLog.ActivityType.CONFIGURATION,
+                ActivityLog.ActivityStatus.SUCCESS,
+                user.getUsername()
+        );
     }
 
     @Override
@@ -231,6 +304,9 @@ public class UtilisateurServiceImpl implements UtilisateurService {
     public void deleteUtilisateur(Long userId) {
         Utilisateur user = userRepo.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'ID: " + userId));
+
+        String username = user.getUsername();
+        String email = user.getEmail();
 
         emailService.envoyerEmailSimple(
                 user.getEmail(),
@@ -243,6 +319,94 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         );
 
         userRepo.delete(user);
+
+        // ✅ Logger l'activité de suppression
+        logActivity(
+                "Suppression d'un utilisateur",
+                ActivityLog.ActivityType.SUPPRESSION,
+                ActivityLog.ActivityStatus.WARNING,
+                username + " (" + email + ")"
+        );
+    }
+
+    // ✅ MÉTHODE UTILITAIRE POUR LOGGER LES ACTIVITÉS
+    private void logActivity(String action, ActivityLog.ActivityType type, ActivityLog.ActivityStatus status, String target) {
+        try {
+            ActivityLog log = new ActivityLog();
+            log.setTimestamp(LocalDateTime.now());
+
+            // Récupérer l'utilisateur connecté
+            String currentUsername = getCurrentUsername();
+            Utilisateur currentUser = getCurrentUser();
+
+            if (currentUser != null) {
+                log.setUserId(currentUser.getId());
+                log.setUserName(currentUser.getPrenom() + " " + currentUser.getNom());
+                log.setUserEmail(currentUser.getEmail());
+            } else {
+                log.setUserId(0L);
+                log.setUserName("Système");
+                log.setUserEmail("system@example.com");
+            }
+
+            log.setAction(action);
+            log.setType(type);
+            log.setStatus(status);
+            log.setTarget(target);
+
+            // Récupérer l'adresse IP
+            log.setIpAddress(getClientIpAddress());
+
+            // Récupérer le User-Agent
+            if (request != null) {
+                log.setUserAgent(request.getHeader("User-Agent"));
+            }
+
+            log.setDetails(action + " - Cible: " + target);
+
+            activityLogService.create(log);
+        } catch (Exception e) {
+            // Ne pas bloquer l'action principale si le log échoue
+            System.err.println("⚠️ Erreur lors du logging de l'activité: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // Récupérer le nom d'utilisateur connecté
+    private String getCurrentUsername() {
+        try {
+            return SecurityContextHolder.getContext().getAuthentication().getName();
+        } catch (Exception e) {
+            return "Système";
+        }
+    }
+
+    // Récupérer l'utilisateur connecté complet
+    private Utilisateur getCurrentUser() {
+        try {
+            String username = getCurrentUsername();
+            if (username != null && !username.equals("anonymousUser") && !username.equals("Système")) {
+                return userRepo.findByUsername(username).orElse(null);
+            }
+        } catch (Exception e) {
+            // Ignorer
+        }
+        return null;
+    }
+
+    // Récupérer l'adresse IP du client
+    private String getClientIpAddress() {
+        if (request == null) {
+            return "0.0.0.0";
+        }
+
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+
+        String remoteAddr = request.getRemoteAddr();
+        return remoteAddr != null ? remoteAddr : "0.0.0.0";
     }
 
     private String genererMotDePasseAleatoire() {

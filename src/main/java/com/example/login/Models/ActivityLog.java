@@ -1,5 +1,7 @@
 package com.example.login.Models;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,42 +14,42 @@ public class ActivityLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
 
-    @Column(name = "timestamp", nullable = false)
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime timestamp;
 
+    // Informations utilisateur (dénormalisées pour performance)
+    @JsonProperty("userId")
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
+    @JsonProperty("userName")
     @Column(name = "user_name", nullable = false)
     private String userName;
 
+    @JsonProperty("userEmail")
     @Column(name = "user_email", nullable = false)
     private String userEmail;
 
-    @Column(name = "action", nullable = false, length = 500)
     private String action;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false)
     private ActivityType type;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
     private ActivityStatus status;
 
-    @Column(name = "target")
     private String target;
 
+    @JsonProperty("ipAddress")
     @Column(name = "ip_address", nullable = false)
     private String ipAddress;
 
+    @JsonProperty("userAgent")
     @Column(name = "user_agent", length = 1000)
     private String userAgent;
 
-    @Column(name = "details", length = 2000)
     private String details;
 
     @PrePersist

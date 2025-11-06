@@ -4,100 +4,111 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Date;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 @Entity
 @Table(name = "sauvegarde_bdd")
 @Getter
 @Setter
 public class SauvegardeBDD {
-    
+
     @Id
     @Column(name = "id_sauvegarde")
-    private String idSauvegarde;
-    
+    private String id;
+
     @Column(name = "nom_fichier")
     private String nomFichier;
-    
+
     @Column(name = "emplacement")
     private String emplacement;
-    
+
     @Column(name = "date_sauvegarde")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date dateSauvegarde;
-    
+    private LocalDateTime dateSauvegarde;
+
+    @Column(name = "taille_fichier")
+    private Long tailleFichier; // en octets
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "cree_par_type")
+    private TypeCreation createdBy;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "statut")
+    private StatutSauvegarde status;
+
     @ManyToOne
     @JoinColumn(name = "cree_par")
     private Administrateur creePar;
-    
-    // Default constructor
+
+    // Enums pour le frontend
+    public enum TypeCreation {
+        Automatique,
+        Manuel
+    }
+
+    public enum StatutSauvegarde {
+        success,
+        pending,
+        failed
+    }
+
+    // Constructors
     public SauvegardeBDD() {
+        this.dateSauvegarde = LocalDateTime.now();
+        this.status = StatutSauvegarde.pending;
     }
-    
-    // Constructor with essential fields
-    public SauvegardeBDD(String idSauvegarde, String nomFichier, String emplacement, 
-                        Administrateur creePar) {
-        this.idSauvegarde = idSauvegarde;
+
+    public SauvegardeBDD(String id, String nomFichier, String emplacement,
+                         Administrateur creePar, TypeCreation createdBy) {
+        this.id = id;
         this.nomFichier = nomFichier;
         this.emplacement = emplacement;
-        this.dateSauvegarde = new Date();
+        this.dateSauvegarde = LocalDateTime.now();
         this.creePar = creePar;
+        this.createdBy = createdBy;
+        this.status = StatutSauvegarde.pending;
     }
-    
-    // Constructor with all fields
-    public SauvegardeBDD(String idSauvegarde, String nomFichier, String emplacement, 
-                        Date dateSauvegarde, Administrateur creePar) {
-        this.idSauvegarde = idSauvegarde;
-        this.nomFichier = nomFichier;
-        this.emplacement = emplacement;
-        this.dateSauvegarde = dateSauvegarde;
-        this.creePar = creePar;
+
+    // Méthodes pour le frontend - FORMAT EXACT
+    public String getDate() {
+        // ✅ CORRECTION : Ajout du point après le mois
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM. yyyy", Locale.FRENCH);
+        return dateSauvegarde.format(formatter);
     }
-    
-    // Create new database backup record
-    public static SauvegardeBDD createSauvegardeBDD(SauvegardeBDD data) {
-        // Note: This would typically be implemented in a repository or service class
-        // This is just a placeholder signature
-        if (data.getDateSauvegarde() == null) {
-            data.setDateSauvegarde(new Date());
-        }
-        return data;
+
+    public String getTime() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+        return dateSauvegarde.format(formatter);
     }
-    
-    // Delete database backup record
-    public static boolean deleteSauvegardeBDD(String id) {
-        // Note: This would typically be implemented in a repository or service class
-        // This is just a placeholder signature
-        return false;
+
+    public String getSize() {
+        if (tailleFichier == null) return "0 MB";
+        double sizeMB = tailleFichier / (1024.0 * 1024.0);
+        return String.format("%.1f MB", sizeMB);
     }
-    
-    // List all database backups
-    public static List<SauvegardeBDD> listSauvegardes() {
-        // Note: This would typically be implemented in a repository or service class
-        // This is just a placeholder signature
-        return null;
-    }
-    
+
     @Override
     public String toString() {
         return "SauvegardeBDD{" +
-                "idSauvegarde='" + idSauvegarde + '\'' +
+                "id='" + id + '\'' +
                 ", nomFichier='" + nomFichier + '\'' +
-                ", emplacement='" + emplacement + '\'' +
                 ", dateSauvegarde=" + dateSauvegarde +
-                ", creePar=" + (creePar != null ? creePar.getIdAdministrateur() : "null") +
+                ", tailleFichier=" + tailleFichier +
+                ", createdBy=" + createdBy +
+                ", status=" + status +
                 '}';
     }
-    
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof SauvegardeBDD)) return false;
         SauvegardeBDD that = (SauvegardeBDD) o;
-        return idSauvegarde != null && idSauvegarde.equals(that.idSauvegarde);
+        return id != null && id.equals(that.id);
     }
-    
+
     @Override
     public int hashCode() {
         return getClass().hashCode();
