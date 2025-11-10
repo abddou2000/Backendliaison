@@ -24,7 +24,6 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
 
-    // ✅ Injection du filtre JWT
     public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
     }
@@ -42,21 +41,19 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(c -> c.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-                // ✅ Configuration de la gestion de session (STATELESS pour JWT)
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/activity-logs/**").permitAll()
-                        .requestMatchers("/api/parametrages-journal/**").permitAll()
-                        // ✅ Endpoints publics (pas besoin d'authentification)
-                        .requestMatchers("/api/login", "/api/auth/**", "/setup/**").permitAll()
-                        // ✅ Tous les autres endpoints nécessitent une authentification
+                        // Endpoints publics
+                        .requestMatchers("/api/login", "/setup/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**", "/webjars/**").permitAll()
+                        // garde-les publics si tu le souhaites
+                        .requestMatchers("/api/activity-logs/**", "/api/parametrages-journal/**").permitAll()
+                        // TOUT le reste nécessite un token
                         .anyRequest().authenticated()
                 )
-                // ✅ AJOUT DU FILTRE JWT AVANT LE FILTRE D'AUTHENTIFICATION
+                // Le filtre JWT doit passer avant UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -70,7 +67,7 @@ public class SecurityConfig {
                 "http://localhost:4200",
                 "http://localhost:5173"
         ));
-        cfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        cfg.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","OPTIONS"));
         cfg.setAllowedHeaders(List.of("*"));
         cfg.setAllowCredentials(true);
 
