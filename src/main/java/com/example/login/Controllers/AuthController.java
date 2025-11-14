@@ -1,11 +1,13 @@
 package com.example.login.Controllers;
 
 import com.example.login.Models.ActivityLog;
+import com.example.login.Models.Role; // Import ajouté
 import com.example.login.Models.Utilisateur;
 import com.example.login.Repositories.UtilisateurRepository;
 import com.example.login.Security.JwtUtil;
 import com.example.login.Services.ActivityLogService;
 import com.example.login.Services.AffectationRoleUtilisateurService;
+import com.example.login.Services.UtilisateurService; // Import ajouté
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +36,7 @@ public class AuthController {
     private final AffectationRoleUtilisateurService affectationService;
 
     @Autowired private ActivityLogService activityLogService;
+    @Autowired private UtilisateurService utilisateurService; // <-- ÉTAPE 1 : Service injecté
     @Autowired(required = false) private HttpServletRequest request;
 
     @Autowired
@@ -99,8 +102,14 @@ public class AuthController {
                 return ResponseEntity.status(403).body("Aucun rôle attribué à cet utilisateur.");
             }
 
-            // Rôle actif par défaut : le rôle principal s’il existe, sinon le premier
-            String activeRole = (primary != null && roles.contains(primary)) ? primary : roles.get(0);
+            // ======================================================================================
+            // <-- ÉTAPE 2 : Ajustement du rôle actif
+            // ✅ Déterminer automatiquement le rôle prioritaire à activer
+            Role roleActif = utilisateurService.getRolePrioritaire(user);
+            String activeRole = (roleActif != null ? roleActif.getType() :
+                    (primary != null && roles.contains(primary) ? primary : roles.get(0)));
+            // ======================================================================================
+
 
             // Token avec rôle actif + liste des rôles
             final UserDetails userDetails = userDetailsService.loadUserByUsername(req.getUsername());

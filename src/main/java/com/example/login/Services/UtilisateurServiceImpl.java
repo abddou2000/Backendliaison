@@ -1,8 +1,11 @@
 package com.example.login.Services;
 
 import com.example.login.Models.ActivityLog;
+import com.example.login.Models.AffectationRoleUtilisateur;
 import com.example.login.Models.Role;
 import com.example.login.Models.Utilisateur;
+import com.example.login.Repositories.AffectationRoleUtilisateurRepository;
+import com.example.login.Repositories.RoleRepository;
 import com.example.login.Repositories.UtilisateurRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -26,6 +30,11 @@ public class UtilisateurServiceImpl implements UtilisateurService {
 
     @Autowired
     private ActivityLogService activityLogService; // ✅ Injection du service de log
+    @Autowired
+    private AffectationRoleUtilisateurRepository aruRepo;
+
+    @Autowired
+    private RoleRepository roleRepo;
 
     @Autowired(required = false)
     private HttpServletRequest request; // ✅ Pour récupérer l'IP et le User-Agent
@@ -45,6 +54,43 @@ public class UtilisateurServiceImpl implements UtilisateurService {
         return userRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Utilisateur introuvable avec l'ID : " + id));
     }
+    @Override
+    public Role getRolePrioritaire(Utilisateur user) {
+        if (user == null) return null;
+
+        // 1️⃣ Récupère tous les rôles associés à l'utilisateur
+        var affectations = aruRepo.findByUtilisateur_Id(user.getId());
+
+        // 2️⃣ On ajoute aussi le rôle principal de l'utilisateur s'il n'est pas déjà présent
+        boolean dejaInclus = affectations.stream()
+                .anyMatch(a -> a.getRole().getId().equals(user.getRole().getId()));
+        if (!dejaInclus) {
+            affectations.add(new AffectationRoleUtilisateur(
+                    new AffectationRoleUtilisateur.Id(user.getId(), user.getRole().getId()),
+                    user,
+                    user.getRole()
+            ));
+        }
+
+        // 3️⃣ Choisir le rôle avec la priorité la plus basse (plus petit chiffre)
+        return affectations.stream()
+                .map(AffectationRoleUtilisateur::getRole)
+                .min(Comparator.comparingInt(this::getPrioriteRole))
+                .orElse(user.getRole());
+    }
+
+    // 🔹 Définir la priorité pour chaque type de rôle
+    private int getPrioriteRole(Role role) {
+        if (role == null || role.getType() == null) return 99;
+        return switch (role.getType().toUpperCase()) {
+            case "EMPLOYE" -> 1;
+            case "RH" -> 2;
+            case "CONFIGURATEUR" -> 3;
+            case "ADMIN" -> 4;
+            default -> 99;
+        };
+    }
+
 
     @Override
     public Utilisateur getByUsername(String username) {
@@ -56,6 +102,7 @@ public class UtilisateurServiceImpl implements UtilisateurService {
     public List<Utilisateur> getAll() {
         return userRepo.findAll();
     }
+
 
     @Override
     @Transactional

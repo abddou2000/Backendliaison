@@ -1,14 +1,16 @@
 package com.example.login.Security;
 
+import com.example.login.Models.Utilisateur;
+import com.example.login.Services.UtilisateurService;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import io.jsonwebtoken.ExpiredJwtException;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.*;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -20,11 +22,12 @@ import java.util.List;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
-    private final UserDetailsService userDetailsService;
+    private final UtilisateurService utilisateurService;
 
-    public JwtAuthFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
+    // ✅ Utilisation de @Lazy pour éviter la boucle entre SecurityConfig ↔ UtilisateurServiceImpl
+    public JwtAuthFilter(JwtUtil jwtUtil, @Lazy UtilisateurService utilisateurService) {
         this.jwtUtil = jwtUtil;
-        this.userDetailsService = userDetailsService;
+        this.utilisateurService = utilisateurService;
     }
 
     @Override
@@ -62,16 +65,20 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
-                // Charger l’utilisateur (pour Principal & vérifs de base)
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                // 🔹 Charger l’utilisateur complet depuis la base
+                Utilisateur utilisateur = utilisateurService.getByUsername(username);
+                if (utilisateur == null) {
+                    writeUnauthorized(response, "USER_NOT_FOUND");
+                    return;
+                }
 
-                // Valider la signature/exp du token
+                // 🔹 Vérifier la validité du token
                 if (!jwtUtil.validateJwtToken(token)) {
                     writeUnauthorized(response, "TOKEN_INVALID");
                     return;
                 }
 
-                // 🔑 Rôle ACTIF depuis le token → une seule authority
+                // 🔹 Rôle actif depuis le token
                 String activeRole = jwtUtil.getActiveRoleFromToken(token);
                 if (activeRole == null || activeRole.isBlank()) {
                     writeUnauthorized(response, "ACTIVE_ROLE_MISSING");
@@ -80,19 +87,18 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
                 var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + activeRole));
 
+                // ✅ Authentifier avec l’entité Utilisateur complète
                 UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
+                        new UsernamePasswordAuthenticationToken(utilisateur, null, authorities);
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
 
-            } catch (UsernameNotFoundException e) {
-                writeUnauthorized(response, "USER_NOT_FOUND");
-                return;
             } catch (ExpiredJwtException eje) {
                 writeUnauthorized(response, "TOKEN_EXPIRED");
                 return;
             } catch (Exception e) {
+                System.err.println("⚠️ Auth error: " + e.getMessage());
                 writeUnauthorized(response, "AUTH_ERROR");
                 return;
             }

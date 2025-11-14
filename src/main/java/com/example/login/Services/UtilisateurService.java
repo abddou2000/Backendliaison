@@ -1,5 +1,6 @@
 package com.example.login.Services;
 
+import com.example.login.Models.Role;
 import com.example.login.Models.Utilisateur;
 import java.util.List;
 
@@ -15,4 +16,9 @@ public interface UtilisateurService {
     Utilisateur updateUtilisateurDetails(Long id, String nom, String prenom, String email, String username, String matricule, Boolean actif);
     void adminResetPassword(Long userId, String nouveauMdp);
     void deleteUtilisateur(Long userId);
+
+    // ✅ NOUVELLE MÉTHODE : détermine le rôle prioritaire à activer à la connexion
+    Role getRolePrioritaire(Utilisateur user);
+
+
 }

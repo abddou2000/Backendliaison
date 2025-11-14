@@ -1,153 +1,176 @@
-package com.example.login.Controllers;
+    package com.example.login.Controllers;
 
-import com.example.login.Models.Utilisateur;
-import com.example.login.Services.UtilisateurService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+    import com.example.login.Models.Utilisateur;
+    import com.example.login.Models.Role;
+    import com.example.login.Models.AffectationRoleUtilisateur;
+    import com.example.login.Repositories.RoleRepository;
+    import com.example.login.Repositories.AffectationRoleUtilisateurRepository;
+    import com.example.login.Services.UtilisateurService;
+    import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.http.HttpStatus;
+    import org.springframework.http.ResponseEntity;
+    import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
+    import java.util.List;
+    import java.util.Map;
 
-@RestController
-@RequestMapping("/api/utilisateurs")
-@CrossOrigin(origins = "*")
-public class UtilisateurController {
-    private final UtilisateurService service;
+    @RestController
+    @RequestMapping("/api/utilisateurs")
+    @CrossOrigin(origins = "*")
+    public class UtilisateurController {
 
-    public UtilisateurController(UtilisateurService service) {
-        this.service = service;
-    }
+        private final UtilisateurService service;
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Utilisateur create(@RequestBody Map<String, Object> requestData,
-                              @RequestParam String roleType) {
+        @Autowired
+        private RoleRepository roleRepo;
 
-        Utilisateur user = new Utilisateur();
+        @Autowired
+        private AffectationRoleUtilisateurRepository aruRepo;
 
-        user.setUsername((String) requestData.get("username"));
-        user.setPassword((String) requestData.get("password"));
-        user.setNom((String) requestData.get("nom"));
-        user.setPrenom((String) requestData.get("prenom"));
-        user.setEmail((String) requestData.get("email"));
-        user.setMatricule((String) requestData.get("matricule"));
-
-        return service.create(user, roleType);
-    }
-
-    @GetMapping
-    public List<Utilisateur> listAll() {
-        return service.getAll();
-    }
-
-    @GetMapping("/{id}")
-    public Utilisateur getById(@PathVariable Long id) {
-        return service.getById(id);
-    }
-
-    @GetMapping("/role/{roleType}")
-    public List<Utilisateur> getByRole(@PathVariable String roleType) {
-        return service.getByRole(roleType);
-    }
-
-    @PutMapping("/{id}/password")
-    public ResponseEntity<Void> changePassword(
-            @PathVariable Long id,
-            @RequestParam String ancienMdp,
-            @RequestParam String nouveauMdp,
-            @RequestParam String confirmationMdp) {
-
-        service.updatePassword(id, ancienMdp, nouveauMdp, confirmationMdp);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Utilisateur> updateUtilisateurDetails(
-            @PathVariable Long id,
-            @RequestBody Map<String, Object> requestData) {
-
-        String nom = (String) requestData.get("nom");
-        String prenom = (String) requestData.get("prenom");
-        String email = (String) requestData.get("email");
-        String username = (String) requestData.get("username");
-        String matricule = (String) requestData.get("matricule");
-        Boolean actif = (Boolean) requestData.get("actif");
-
-        try {
-            Utilisateur updatedUser = service.updateUtilisateurDetails(id, nom, prenom, email, username, matricule, actif);
-            return ResponseEntity.ok(updatedUser);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    // ✅ MÉTHODE MODIFIÉE - Accepte maintenant un String
-    @PutMapping("/{id}/admin-reset-password")
-    public ResponseEntity<Void> adminResetPassword(
-            @PathVariable String id,  // ✅ CHANGÉ: String au lieu de Long
-            @RequestBody Map<String, String> requestData) {
-
-        String nouveauMdp = requestData.get("nouveauMdp");
-
-        // Validation du mot de passe
-        if (nouveauMdp == null || nouveauMdp.trim().isEmpty()) {
-            System.err.println("❌ Mot de passe vide ou null");
-            return ResponseEntity.badRequest().build();
+        public UtilisateurController(UtilisateurService service) {
+            this.service = service;
         }
 
-        try {
-            // ✅ Conversion et validation de l'ID
-            Long userId = Long.parseLong(id.trim());
+        // ✅ Création d’un utilisateur avec rôle principal + insertion dans la table d’affectation
+        @PostMapping
+        @ResponseStatus(HttpStatus.CREATED)
+        public Utilisateur create(@RequestBody Map<String, Object> requestData,
+                                  @RequestParam String roleType) {
 
-            if (userId <= 0) {
-                System.err.println("❌ ID invalide (doit être positif): " + userId);
+            Utilisateur user = new Utilisateur();
+
+            // ⚙️ Hydratation des champs reçus depuis le front
+            user.setUsername((String) requestData.get("username"));
+            user.setPassword((String) requestData.get("password")); // champ transient
+            user.setNom((String) requestData.get("nom"));
+            user.setPrenom((String) requestData.get("prenom"));
+            user.setEmail((String) requestData.get("email"));
+            user.setMatricule((String) requestData.get("matricule"));
+
+            // ✅ Étape 1 : Création du user avec son rôle principal
+            Utilisateur createdUser = service.create(user, roleType);
+
+            // ✅ Étape 2 : Ajouter automatiquement ce rôle principal dans la table d’affectation
+            try {
+                roleRepo.findByType(roleType).ifPresentOrElse(role -> {
+                    AffectationRoleUtilisateur link = new AffectationRoleUtilisateur(
+                            new AffectationRoleUtilisateur.Id(createdUser.getId(), role.getId()),
+                            createdUser,
+                            role
+                    );
+                    aruRepo.save(link);
+                    System.out.println("✅ Lien d’affectation créé : utilisateur " + createdUser.getUsername()
+                            + " → rôle " + roleType);
+                }, () -> {
+                    System.err.println("⚠️ Aucun rôle trouvé pour le type : " + roleType);
+                });
+            } catch (Exception e) {
+                System.err.println("⚠️ Erreur lors de l’ajout du rôle principal dans AffectationRoleUtilisateur : " + e.getMessage());
+            }
+
+            return createdUser;
+        }
+
+        // 🔹 Lister tous les utilisateurs
+        @GetMapping
+        public List<Utilisateur> listAll() {
+            return service.getAll();
+        }
+
+        // 🔹 Récupérer un utilisateur par ID
+        @GetMapping("/{id}")
+        public Utilisateur getById(@PathVariable Long id) {
+            return service.getById(id);
+        }
+
+        // 🔹 Récupérer les utilisateurs d’un rôle spécifique
+        @GetMapping("/role/{roleType}")
+        public List<Utilisateur> getByRole(@PathVariable String roleType) {
+            return service.getByRole(roleType);
+        }
+
+        // 🔹 Changer le mot de passe d’un utilisateur
+        @PutMapping("/{id}/password")
+        public ResponseEntity<Void> changePassword(
+                @PathVariable Long id,
+                @RequestParam String ancienMdp,
+                @RequestParam String nouveauMdp,
+                @RequestParam String confirmationMdp) {
+
+            service.updatePassword(id, ancienMdp, nouveauMdp, confirmationMdp);
+            return ResponseEntity.noContent().build();
+        }
+
+        // 🔹 Mettre à jour les infos utilisateur
+        @PutMapping("/{id}")
+        public ResponseEntity<Utilisateur> updateUtilisateurDetails(
+                @PathVariable Long id,
+                @RequestBody Map<String, Object> requestData) {
+
+            String nom = (String) requestData.get("nom");
+            String prenom = (String) requestData.get("prenom");
+            String email = (String) requestData.get("email");
+            String username = (String) requestData.get("username");
+            String matricule = (String) requestData.get("matricule");
+            Boolean actif = (Boolean) requestData.get("actif");
+
+            try {
+                Utilisateur updatedUser = service.updateUtilisateurDetails(id, nom, prenom, email, username, matricule, actif);
+                return ResponseEntity.ok(updatedUser);
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().build();
+            } catch (RuntimeException e) {
+                return ResponseEntity.notFound().build();
+            }
+        }
+
+        // 🔹 Réinitialisation du mot de passe par un admin
+        @PutMapping("/{id}/admin-reset-password")
+        public ResponseEntity<Void> adminResetPassword(
+                @PathVariable String id,
+                @RequestBody Map<String, String> requestData) {
+
+            String nouveauMdp = requestData.get("nouveauMdp");
+
+            if (nouveauMdp == null || nouveauMdp.trim().isEmpty()) {
+                System.err.println("❌ Mot de passe vide ou null");
                 return ResponseEntity.badRequest().build();
             }
 
-            // Logs pour debugging
-            System.out.println("🔍 [Admin Reset Password]");
-            System.out.println("   📍 ID reçu (String): '" + id + "'");
-            System.out.println("   🔢 ID converti (Long): " + userId);
-            System.out.println("   🔑 Nouveau mot de passe: " + (nouveauMdp.length() > 0 ? "[***]" : "[VIDE]"));
+            try {
+                Long userId = Long.parseLong(id.trim());
 
-            // Appel au service
-            service.adminResetPassword(userId, nouveauMdp);
+                if (userId <= 0) {
+                    System.err.println("❌ ID invalide (doit être positif): " + userId);
+                    return ResponseEntity.badRequest().build();
+                }
 
-            System.out.println("   ✅ Mot de passe réinitialisé avec succès pour l'ID: " + userId);
-            return ResponseEntity.noContent().build();
+                System.out.println("🔍 [Admin Reset Password]");
+                service.adminResetPassword(userId, nouveauMdp);
+                System.out.println("✅ Mot de passe réinitialisé avec succès pour l'ID: " + userId);
 
-        } catch (NumberFormatException e) {
-            // ✅ Gestion: ID n'est pas un nombre valide
-            System.err.println("❌ [NumberFormatException] ID invalide (pas un nombre): '" + id + "'");
-            System.err.println("   Détail: " + e.getMessage());
-            return ResponseEntity.badRequest().build();
+                return ResponseEntity.noContent().build();
 
-        } catch (RuntimeException e) {
-            // ✅ Gestion: Utilisateur non trouvé ou autre erreur du service
-            System.err.println("❌ [RuntimeException] Erreur lors de la réinitialisation");
-            System.err.println("   ID recherché: " + id);
-            System.err.println("   Message: " + e.getMessage());
-            System.err.println("   Type: " + e.getClass().getSimpleName());
+            } catch (NumberFormatException e) {
+                System.err.println("❌ [NumberFormatException] ID invalide: '" + id + "'");
+                return ResponseEntity.badRequest().build();
+            } catch (RuntimeException e) {
+                System.err.println("❌ [RuntimeException] Erreur lors de la réinitialisation : " + e.getMessage());
+                if (e.getMessage() != null && e.getMessage().contains("non trouvé")) {
+                    return ResponseEntity.notFound().build();
+                }
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+        }
 
-            // Vérifier si c'est une erreur "utilisateur non trouvé"
-            if (e.getMessage() != null && e.getMessage().contains("non trouvé")) {
+        // 🔹 Supprimer un utilisateur
+        @DeleteMapping("/{id}")
+        public ResponseEntity<Void> deleteUtilisateur(@PathVariable Long id) {
+            try {
+                service.deleteUtilisateur(id);
+                return ResponseEntity.noContent().build();
+            } catch (RuntimeException e) {
                 return ResponseEntity.notFound().build();
             }
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUtilisateur(@PathVariable Long id) {
-        try {
-            service.deleteUtilisateur(id);
-            return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-}

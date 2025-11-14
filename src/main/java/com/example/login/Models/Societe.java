@@ -1,5 +1,6 @@
 package com.example.login.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,7 +11,9 @@ import java.util.Date;
 @Table(name = "societe")
 @Getter
 @Setter
-public class Societe {
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+public class
+Societe {
 
     @Id
     @Column(name = "idSociete")
@@ -70,10 +73,8 @@ public class Societe {
     @Temporal(TemporalType.DATE)
     private Date dateFin;
 
-    // Default constructor
     public Societe() {}
 
-    // Constructor with essential fields
     public Societe(String idSociete, String codeSociete, String raisonSociale, String adresse) {
         this.idSociete = idSociete;
         this.codeSociete = codeSociete;
@@ -81,7 +82,6 @@ public class Societe {
         this.adresse = adresse;
     }
 
-    // Constructor with all fields
     public Societe(
             String idSociete,
             String codeSociete,
@@ -144,7 +144,7 @@ public class Societe {
         return getClass().hashCode();
     }
 
-        public String getId() {
-            return this.idSociete;
-        }
+    public String getId() {
+        return this.idSociete;
+    }
 }
