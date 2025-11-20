@@ -1,5 +1,6 @@
 package com.example.login.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,14 +19,17 @@ public class DemandeDocument {
 
     @ManyToOne
     @JoinColumn(name = "id_user")
+    @JsonIgnore
     private EmployeSimple employe;
 
     @ManyToOne
     @JoinColumn(name = "id_attestation")
+    @JsonIgnore
     private Attestation attestation;
 
     @ManyToOne
     @JoinColumn(name = "id_fiche")
+    @JsonIgnore
     private FichePaie fichePaie;
 
     @Column(name = "type_document")
@@ -54,6 +58,10 @@ public class DemandeDocument {
     @Column(name = "lien_telechargement")
     private String lienTelechargement;
 
+    // ✅ Utilisé uniquement pour recevoir l'ID employé depuis le JSON (Postman / front)
+    @Transient
+    private Long employeId;
+
     public DemandeDocument() { }
 
     public DemandeDocument(String idDemande,
@@ -75,14 +83,14 @@ public class DemandeDocument {
                            Date dateDemande,
                            Date dateTraitement,
                            String lienTelechargement) {
-        this.idDemande        = idDemande;
-        this.typeDocument     = typeDocument;
-        this.motif            = motif;
-        this.formatDocument   = formatDocument;
-        this.etatDemande      = etatDemande;
-        this.motifRefus       = motifRefus;
-        this.dateDemande      = dateDemande;
-        this.dateTraitement   = dateTraitement;
+        this.idDemande          = idDemande;
+        this.typeDocument       = typeDocument;
+        this.motif              = motif;
+        this.formatDocument     = formatDocument;
+        this.etatDemande        = etatDemande;
+        this.motifRefus         = motifRefus;
+        this.dateDemande        = dateDemande;
+        this.dateTraitement     = dateTraitement;
         this.lienTelechargement = lienTelechargement;
     }
 
@@ -99,13 +107,13 @@ public class DemandeDocument {
                            Date dateTraitement,
                            String lienTelechargement) {
         this(idDemande, employe, typeDocument);
-        this.attestation       = attestation;
-        this.fichePaie         = fichePaie;
-        this.motif             = motif;
-        this.formatDocument    = formatDocument;
-        this.etatDemande       = etatDemande;
-        this.motifRefus        = motifRefus;
-        this.dateTraitement    = dateTraitement;
+        this.attestation        = attestation;
+        this.fichePaie          = fichePaie;
+        this.motif              = motif;
+        this.formatDocument     = formatDocument;
+        this.etatDemande        = etatDemande;
+        this.motifRefus         = motifRefus;
+        this.dateTraitement     = dateTraitement;
         this.lienTelechargement = lienTelechargement;
     }
 

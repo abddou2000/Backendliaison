@@ -1,34 +1,31 @@
 package com.example.login.Security;
 
-import com.example.login.Models.Utilisateur;
-import com.example.login.Services.UtilisateurService;
-import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    private final JwtUtil jwtUtil;
-    private final UtilisateurService utilisateurService;
+    @Autowired
+    private JwtUtil jwtUtil;
 
-    // ✅ Utilisation de @Lazy pour éviter la boucle entre SecurityConfig ↔ UtilisateurServiceImpl
-    public JwtAuthFilter(JwtUtil jwtUtil, @Lazy UtilisateurService utilisateurService) {
-        this.jwtUtil = jwtUtil;
-        this.utilisateurService = utilisateurService;
-    }
+    @Autowired
+    private UserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(
@@ -37,88 +34,86 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String path = request.getRequestURI();
         System.out.println("=== JWT FILTER DEBUG ===");
-        System.out.println("Request path: " + path);
+        System.out.println("Request path: " + request.getRequestURI());
 
-        if (shouldSkipAuthentication(path)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+        try {
+            // 1️⃣ Extraire le token JWT du header Authorization
+            String jwt = parseJwt(request);
 
-        String header = request.getHeader("Authorization");
-        String token = null;
-        String username = null;
+            if (jwt != null && jwtUtil.validateJwtToken(jwt)) {
+                // 2️⃣ Extraire le username du token
+                String username = jwtUtil.getUsernameFromToken(jwt);
+                System.out.println("JWT valid for user: " + username);
 
-        if (header != null && header.startsWith("Bearer ")) {
-            token = header.substring(7);
-            try {
-                username = jwtUtil.getUsernameFromToken(token);
-            } catch (ExpiredJwtException eje) {
-                writeUnauthorized(response, "TOKEN_EXPIRED");
-                return;
-            } catch (Exception e) {
-                writeUnauthorized(response, "TOKEN_INVALID");
-                return;
+                // 3️⃣ Charger les détails de l'utilisateur
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+                // 4️⃣ Extraire le rôle actif et la liste des rôles du token
+                String activeRole = jwtUtil.getActiveRoleFromToken(jwt);
+                List<String> roles = jwtUtil.getRolesFromToken(jwt);
+
+                System.out.println("Active role: " + activeRole);
+                System.out.println("All roles: " + roles);
+
+                // 5️⃣ Créer les authorities (CRITIQUE pour Spring Security)
+                List<SimpleGrantedAuthority> authorities = roles.stream()
+                        .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                        .collect(Collectors.toList());
+
+                // Ajouter le rôle actif si pas déjà présent
+                if (activeRole != null && !activeRole.isBlank()) {
+                    SimpleGrantedAuthority activeAuthority = new SimpleGrantedAuthority("ROLE_" + activeRole);
+                    if (!authorities.contains(activeAuthority)) {
+                        authorities.add(activeAuthority);
+                    }
+                }
+
+                System.out.println("Granted authorities: " + authorities);
+
+                // 6️⃣ Créer l'objet d'authentification avec les authorities
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,  // credentials (pas besoin, déjà authentifié)
+                                authorities  // ⚠️ CRITIQUE: doit contenir les rôles
+                        );
+
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                // 7️⃣ Définir l'authentification dans le SecurityContext
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                System.out.println("✅ Authentication set in SecurityContext");
+                System.out.println("Is authenticated: " + authentication.isAuthenticated());
+                System.out.println("Authorities: " + authentication.getAuthorities());
+
+            } else {
+                System.out.println("❌ No valid JWT found");
             }
+
+        } catch (Exception e) {
+            System.err.println("❌ Cannot set user authentication: " + e.getMessage());
+            e.printStackTrace();
         }
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            try {
-                // 🔹 Charger l’utilisateur complet depuis la base
-                Utilisateur utilisateur = utilisateurService.getByUsername(username);
-                if (utilisateur == null) {
-                    writeUnauthorized(response, "USER_NOT_FOUND");
-                    return;
-                }
-
-                // 🔹 Vérifier la validité du token
-                if (!jwtUtil.validateJwtToken(token)) {
-                    writeUnauthorized(response, "TOKEN_INVALID");
-                    return;
-                }
-
-                // 🔹 Rôle actif depuis le token
-                String activeRole = jwtUtil.getActiveRoleFromToken(token);
-                if (activeRole == null || activeRole.isBlank()) {
-                    writeUnauthorized(response, "ACTIVE_ROLE_MISSING");
-                    return;
-                }
-
-                var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + activeRole));
-
-                // ✅ Authentifier avec l’entité Utilisateur complète
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(utilisateur, null, authorities);
-
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-
-            } catch (ExpiredJwtException eje) {
-                writeUnauthorized(response, "TOKEN_EXPIRED");
-                return;
-            } catch (Exception e) {
-                System.err.println("⚠️ Auth error: " + e.getMessage());
-                writeUnauthorized(response, "AUTH_ERROR");
-                return;
-            }
-        }
-
+        // 8️⃣ Continuer la chaîne de filtres
         filterChain.doFilter(request, response);
     }
 
-    private boolean shouldSkipAuthentication(String path) {
-        return path.startsWith("/api/login")
-                || path.startsWith("/setup/")
-                || path.startsWith("/v3/api-docs")
-                || path.startsWith("/swagger-ui")
-                || path.startsWith("/swagger-resources")
-                || path.startsWith("/webjars/");
-    }
+    /**
+     * Extrait le token JWT du header "Authorization: Bearer <token>"
+     */
+    private String parseJwt(HttpServletRequest request) {
+        String headerAuth = request.getHeader("Authorization");
 
-    private void writeUnauthorized(HttpServletResponse response, String code) throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write("{\"error\":\"" + code + "\"}");
+        if (headerAuth != null && headerAuth.startsWith("Bearer ")) {
+            String token = headerAuth.substring(7);
+            System.out.println("Token extracted: " + token.substring(0, Math.min(20, token.length())) + "...");
+            return token;
+        }
+
+        System.out.println("No Bearer token found in Authorization header");
+        return null;
     }
 }

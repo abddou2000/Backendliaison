@@ -45,15 +45,24 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Endpoints publics
-                        .requestMatchers("/api/login", "/setup/**").permitAll()
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**", "/webjars/**").permitAll()
-                        // garde-les publics si tu le souhaites
-                        .requestMatchers("/api/activity-logs/**", "/api/parametrages-journal/**").permitAll()
-                        // TOUT le reste nécessite un token
+                        // 🔓 Endpoints publics (sans JWT)
+                        .requestMatchers(
+                                "/api/login",          // ton login actuel
+                                "/api/auth/login",     // au cas où tu l'utilises côté front
+                                "/setup/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-resources/**",
+                                "/webjars/**",
+                                "/api/activity-logs/**",
+                                "/api/parametrages-journal/**"
+                        ).permitAll()
+                        // 🔐 Endpoints protégés (JWT requis, tous rôles acceptés)
+                        .requestMatchers("/api/auth/**").authenticated()
+                        // 🔐 TOUT le reste nécessite un JWT valide
                         .anyRequest().authenticated()
                 )
-                // Le filtre JWT doit passer avant UsernamePasswordAuthenticationFilter
+                // Le filtre JWT avant UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
